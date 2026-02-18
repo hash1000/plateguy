@@ -1,0 +1,22 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+.next/
+build/
+
+# Log files
+*.log
+
+# IDEs and Editors
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
