@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingCart, Search, Menu, X, ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 const navLinks = [
   { label: "HOME", href: "/" },
@@ -15,8 +16,14 @@ const navLinks = [
         items: [
           { label: "4D 3MM Number Plates", href: "/plate-styles/4d-3mm" },
           { label: "4D 5MM Number Plates", href: "/plate-styles/4d-5mm" },
-          { label: "4D Gel 3mm Number Plates", href: "/plate-styles/4d-gel-3mm" },
-          { label: "4D Gel 5mm Number Plates", href: "/plate-styles/4d-gel-5mm" },
+          {
+            label: "4D Gel 3mm Number Plates",
+            href: "/plate-styles/4d-gel-3mm",
+          },
+          {
+            label: "4D Gel 5mm Number Plates",
+            href: "/plate-styles/4d-gel-5mm",
+          },
         ],
       },
       {
@@ -79,12 +86,21 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2 group flex-shrink-0"
+          >
             <div className="relative">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-brand-yellow rounded-lg flex items-center justify-center font-heading text-brand-black text-xl lg:text-2xl leading-none group-hover:scale-105 transition-transform duration-200">
-                PG
+                <Image
+                  src="/images/plateguy_logo.png"
+                  width={100}
+                  height={100}
+                  alt="Picture of the author"
+                />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-brand-yellow rounded-full opacity-60 group-hover:scale-150 transition-transform duration-300" />
+
+              {/* <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-brand-yellow rounded-full opacity-60 group-hover:scale-150 transition-transform duration-300" /> */}
             </div>
             <div className="hidden sm:block">
               <span className="font-heading text-2xl lg:text-3xl text-white leading-none tracking-wide">
@@ -148,7 +164,7 @@ export default function Navbar() {
                 >
                   {link.label}
                 </Link>
-              )
+              ),
             )}
           </div>
 
@@ -238,7 +254,7 @@ export default function Navbar() {
                     >
                       {item.label}
                     </Link>
-                  ))
+                  )),
                 )}
               </div>
             ))}
