@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-brand-black text-white font-body antialiased">
+      <body className="bg-brand-black text-white font-body antialiased" suppressHydrationWarning>
         <AnnouncementBar />
         <Navbar />
         <main>{children}</main>

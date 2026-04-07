@@ -34,7 +34,6 @@ export default function PlateBuilder() {
   const [rearPrice, setRearPrice] = useState(0);
   const [frontGelColor, setFrontGelColor] = useState<GelColors | null>(null);
   const [rearGelColor, setRearGelColor] = useState<GelColors | null>(null);
-
   const [sameAsFront, setSameAsFront] = useState(true);
 
   const [isValidPlate, setIsValidPlate] = useState(false);
@@ -93,15 +92,18 @@ export default function PlateBuilder() {
     }
   }, [plateNumber]);
 
-  const [frontSize, setFrontSize] = useState<PlateSize>(() => {
-    const sizes = plateStyles[0]?.frontPlate?.sizes as PlateSize[] | undefined;
-    if (sizes && sizes.length > 0) {
-      // Find the size with key 'standard'
-      const standardSize = sizes.find((size) => size.key === "standard");
-      return standardSize || sizes[0]; // fallback to first element if not found
-    }
-    return { key: "standard", width: 20.5, height: 4.5, price: 0 }; // Default fallback
-  });
+  useEffect(() => {
+    console.log("standard  useEffect");
+  }, []);
+
+  const DEFAULT_FRONT_SIZE: PlateSize = {
+    key: "standard",
+    width: 20.5,
+    height: 4.5,
+    price: 0,
+  };
+
+  const [frontSize, setFrontSize] = useState<PlateSize>(DEFAULT_FRONT_SIZE);
 
   const [rearSize, setRearSize] = useState<PlateSize>(() => {
     const sizes = plateStyles[0]?.rearPlate?.sizes as PlateSize[] | undefined;
@@ -135,13 +137,13 @@ export default function PlateBuilder() {
     }
   }, [frontStyle, rearStyle]);
 
-useEffect(() => {
-  setRearPrice(rearSize?.price ?? 0);
-}, [rearSize]);
+  useEffect(() => {
+    setRearPrice(rearSize?.price ?? 0);
+  }, [rearSize]);
 
-useEffect(() => {
-  setFrontPrice(frontSize?.price ?? 0);
-}, [frontSize]);
+  useEffect(() => {
+    setFrontPrice(frontSize?.price ?? 0);
+  }, [frontSize]);
 
   // Border states - Set dynamically based on frontStyle and rearStyle
   const [frontBorder, setFrontBorder] = useState<Border>(() => ({
@@ -170,7 +172,6 @@ useEffect(() => {
 
   useEffect(() => {
     const handleMessage = (event: any) => {
-      console.log("📩 Received plate number:", event.data);
       if (event.data.plateNumber) {
         setPlateNumber(event.data.plateNumber);
       }
@@ -286,10 +287,10 @@ useEffect(() => {
                 className="md:col-span-4 rounded-sm mt-2 w-full"
                 style={{ minHeight: "300px" }}
               >
-                <div className="grid grid-cols-2 gap-2 py-2 text-black">
+                <div className="grid grid-cols-2 gap-2 py-2">
                   {iWantFrontPlate && (
                     <Button
-                      className={isRear ? "bg-transparent" : ""}
+                      variant={!isRear ? "default" : "outline"}
                       onClick={() => setIsRear(false)}
                     >
                       FRONT PLATE
@@ -297,7 +298,7 @@ useEffect(() => {
                   )}
                   {iWantBackPlate && (
                     <Button
-                      className={!isRear ? "bg-transparent" : ""}
+                      variant={isRear ? "default" : "outline"}
                       onClick={() => setIsRear(true)}
                     >
                       REAR PLATE
