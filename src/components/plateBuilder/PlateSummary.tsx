@@ -127,7 +127,12 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
         return;
       }
 
-      window.location.href = data.url;
+      try {
+        if (window.top) window.top.location.href = data.url;
+        else window.location.href = data.url;
+      } catch {
+        window.location.href = data.url;
+      }
     } catch (e: any) {
       toast({
         title: "Checkout error",

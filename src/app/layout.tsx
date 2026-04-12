@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "PlateGuy | Premium 3D & 4D Number Plates UK",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <AnnouncementBar />
         <Navbar />
         <main>{children}</main>
+        <Toaster />
         <Footer />
       </body>
     </html>
