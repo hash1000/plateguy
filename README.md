@@ -74,6 +74,9 @@ This project includes a simple Stripe Checkout integration for the Plate Builder
 - Set `STRIPE_SECRET_KEY` (required)
 - Optionally set `NEXT_PUBLIC_SITE_URL` for success/cancel URLs
 
+### Security note (Next.js)
+If Vercel reports a vulnerable Next.js version (CVE alert), update `next` + `eslint-config-next` in `package.json` and redeploy.
+
 ## Tech Stack
 
 - Next.js 14 (App Router)
