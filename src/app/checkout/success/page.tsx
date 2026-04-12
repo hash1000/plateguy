@@ -1,9 +1,9 @@
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string } | Promise<{ session_id?: string }>;
+  searchParams?: Promise<{ session_id?: string }>;
 }) {
-  const { session_id } = await Promise.resolve(searchParams);
+  const { session_id } = searchParams ? await searchParams : {};
 
   return (
     <main className="min-h-[70vh] bg-brand-dark text-white">
