@@ -336,6 +336,8 @@ export default function PlateBuilder() {
           <PlateSummary
             plateNumber={plateNumber}
             roadLegalSpacing={roadLegalSpacing}
+            wantFront={iWantFrontPlate}
+            wantBack={iWantBackPlate}
             frontStyle={frontStyle}
             rearStyle={rearStyle}
             frontPrice={frontPrice}

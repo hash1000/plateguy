@@ -67,6 +67,13 @@ The plate builder and contact form are currently static. To connect:
 - Contact form → connect to email service (e.g. Resend, EmailJS)
 - Plate styles → fetch from your CMS/database
 
+### Stripe Checkout (Plate Builder)
+This project includes a simple Stripe Checkout integration for the Plate Builder’s **ADD TO BASKET** button.
+
+- Copy `.env.example` → `.env.local`
+- Set `STRIPE_SECRET_KEY` (required)
+- Optionally set `NEXT_PUBLIC_SITE_URL` for success/cancel URLs
+
 ## Tech Stack
 
 - Next.js 14 (App Router)
