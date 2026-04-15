@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -40,15 +40,19 @@ export function Start({
   className?: string;
   isValidPlate: boolean;
 }) {
+  const [errors, setErrors] = useState<Record<string, string>>({});
   return (
     <div className={cn("", className)}>
-      <h5>Your registration</h5>
-      <Input
-        className="bg-white text-black font-bold text-2xl tracking-widest text-center"
+
+      <Field
+        label="Your registration"
+        id="registration"
         value={plateNumber}
-        onChange={(e) => setPlateNumber(e.target.value.toLocaleUpperCase())}
-        maxLength={8}
-        minLength={6}
+        onChange={(v: any) => setPlateNumber(v.toLocaleUpperCase())}
+        placeholder="WF3 2LS"
+        errors={errors}
+        setErrors={setErrors}
+        required
       />
       {isValidPlate ? (
         <label className="border bg-white/95 px-2 py-1 rounded-sm text-yellow-800">
@@ -227,10 +231,10 @@ export function STYLE({
                         <Button
                           onClick={() => setFrontGelColor(color)}
                           className={`text-black bg-white p-1 ${frontGelColor === color ? "bg-yellow border-black text-white" : "bg-white text-black border-2 border-gray-300"}`}
-                           style={{
-                                color: `#${color[index === 0 ? "top" : "botton"].toString(16).padStart(6, "0")}`,
-                                backgroundColor: "yellow"
-                              }}
+                          style={{
+                            color: `#${color[index === 0 ? "top" : "botton"].toString(16).padStart(6, "0")}`,
+                            backgroundColor: "yellow"
+                          }}
                           key={color.name}
                         >
                           {color.name.split(" on ").map((word, index) => (
@@ -265,26 +269,26 @@ interface SizingProps {
   setRearSize: (style: any) => void;
 }
 
-export function SIZING({ className, frontSize,rearSize,frontStyle,rearStyle,setFrontSize,setRearSize }: SizingProps) {
+export function SIZING({ className, frontSize, rearSize, frontStyle, rearStyle, setFrontSize, setRearSize }: SizingProps) {
   const plateStyles = getStylesByLetterCount(7); // Assuming getStylesByLetterCount is a function that returns plate styles
   const [sameAsFront, setSameAsFront] = useState(true);
 
-  useEffect(()=>{
-    if(sameAsFront){
+  useEffect(() => {
+    if (sameAsFront) {
       setRearSize(frontSize)
     }
-  },[sameAsFront])
+  }, [sameAsFront])
 
   const handleFrontSizeClick = (style: PlateSize) => {
     setFrontSize(style); // This will update the state in the parent component
-    
+
   };
 
-  useEffect(()=>{
-    if(sameAsFront){
+  useEffect(() => {
+    if (sameAsFront) {
       setRearSize(frontSize)
     }
-  },[frontSize])
+  }, [frontSize])
 
   const handleRearSizeClick = (style: PlateSize) => {
     setRearSize(style); // This will update the state in the parent component
@@ -303,19 +307,19 @@ export function SIZING({ className, frontSize,rearSize,frontStyle,rearStyle,setF
 
       {/* Front Style Tab */}
       <TabsContent value="front" className="flex flex-col gap-3 col-span-2 px-2 rounded-sm">
-          <div
-            className={` pb-2 rounded-sm  pt-[2px] px-[2px]`}
-          >
-            <div className=" relative h-[140px]"><Image src={"/178348.jpg"} alt="img" className=" rounded-t-sm" fill priority /></div>
-            <p className="px-2 py-2">{frontStyle.name}</p>
-            <div className="px-2 flex flex-wrap gap-1">
-                  {
-                    frontStyle.frontPlate.sizes.map((size: any)=>(
-                      <Button onClick={()=>handleFrontSizeClick(size)} className={`bg-white p-1  border-2 ${frontSize.key==size.key?"border-black ":""}`} key={size.key}>{ size.key+"-"+ size.width +"x"+ size.height}</Button>
-                    ))
-                  }
-                </div>
+        <div
+          className={` pb-2 rounded-sm  pt-[2px] px-[2px]`}
+        >
+          <div className=" relative h-[140px]"><Image src={"/178348.jpg"} alt="img" className=" rounded-t-sm" fill priority /></div>
+          <p className="px-2 py-2">{frontStyle.name}</p>
+          <div className="px-2 flex flex-wrap gap-1">
+            {
+              frontStyle.frontPlate.sizes.map((size: any) => (
+                <Button onClick={() => handleFrontSizeClick(size)} className={`bg-white p-1  border-2 ${frontSize.key == size.key ? "border-black " : ""}`} key={size.key}>{size.key + "-" + size.width + "x" + size.height}</Button>
+              ))
+            }
           </div>
+        </div>
       </TabsContent>
 
       {/* Rear Style Tab */}
@@ -328,18 +332,18 @@ export function SIZING({ className, frontSize,rearSize,frontStyle,rearStyle,setF
         {/* Conditionally render rear style options based on sameAsFront */}
         {!sameAsFront && (
           <div
-          className={` pb-2 rounded-sm  pt-[2px] px-[2px]`}
-        >
-          <div className=" relative h-[140px]"><Image src={"/178348.jpg"} alt="img" className=" rounded-t-sm" fill priority /></div>
-          <p className="px-2 py-2">{rearStyle.name}</p>
-          <div className="px-2 flex flex-wrap gap-1">
-                {
-                  rearStyle.rearPlate.sizes.map((size: any)=>(
-                    <Button onClick={()=>handleRearSizeClick(size)} className={`bg-white p-1  border-2 ${rearSize.key==size.key?"border-black ":""}`}  key={size.key}>{ size.key+"-"+ size.width +"x"+ size.height}</Button>
-                  ))
-                }
-              </div>
-        </div>
+            className={` pb-2 rounded-sm  pt-[2px] px-[2px]`}
+          >
+            <div className=" relative h-[140px]"><Image src={"/178348.jpg"} alt="img" className=" rounded-t-sm" fill priority /></div>
+            <p className="px-2 py-2">{rearStyle.name}</p>
+            <div className="px-2 flex flex-wrap gap-1">
+              {
+                rearStyle.rearPlate.sizes.map((size: any) => (
+                  <Button onClick={() => handleRearSizeClick(size)} className={`bg-white p-1  border-2 ${rearSize.key == size.key ? "border-black " : ""}`} key={size.key}>{size.key + "-" + size.width + "x" + size.height}</Button>
+                ))
+              }
+            </div>
+          </div>
         )}
       </TabsContent>
     </Tabs>

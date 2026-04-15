@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "PlateGuy | Premium 3D & 4D Number Plates UK",
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body className="bg-brand-black text-white font-body antialiased" suppressHydrationWarning>
         <AnnouncementBar />
         <Navbar />
-        <main>{children}</main>
+        <main>
+          <Providers>{children}</Providers>
+        </main>
         <Toaster />
         <Footer />
       </body>

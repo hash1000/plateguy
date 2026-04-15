@@ -3,24 +3,42 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>((
-  { className, type, ...props },
-  ref
-) => {
-  return (
-    <input
-      type={type}
-      className={cn(
-        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        // Theme-based colors
-        "border-border bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-ring",
-        className
+const Field = ({
+    label,
+    id,
+    value,
+    onChange,
+    type = "text",
+    placeholder,
+    required,
+    errors, 
+    setErrors
+  }: any) => {
+    return(
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-semibold text-yellow-400">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => {
+          console.log(">>",e.target.value);
+          onChange(e.target.value);
+          if (errors[id]) setErrors((prev: any) => ({ ...prev, [id]: "" }));
+        }}
+        placeholder={placeholder}
+        className={cn(`border rounded-md px-3 py-2.5 text-black text-sm outline-none transition focus:ring-2 focus:ring-yellow-400 focus:border-transparent ${
+          errors[id] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
+        }`)}
+      />
+      {errors[id] && (
+        <p className="text-xs text-red-500 mt-0.5">{errors[id]}</p>
       )}
-      ref={ref}
-      {...props}
-    />
-  )
-})
-Input.displayName = "Input"
+    </div>
+    )
+  }
 
-export { Input }
+export { Field }
