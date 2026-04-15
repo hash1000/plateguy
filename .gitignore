@@ -1,6 +1,9 @@
 # Node.js dependencies
 node_modules/
 
+# Local npm cache (used when default cache isn't writable)
+.npm-cache/
+
 # Build output
 .next/
 build/

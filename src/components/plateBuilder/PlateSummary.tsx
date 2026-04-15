@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Border, GelColors, PlateSize } from "../../style/PlateStyles";
 import { useToast } from "@/hooks/use-toast";
+import { saveBasket } from "@/lib/basket";
+import { useRouter } from "next/navigation";
+import { saveCurrentOrderId } from "@/lib/orderClient";
 
 interface PlateSummaryProps {
   plateNumber: string;
@@ -36,6 +39,7 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
   rearGel,
 }) => {
   const { toast } = useToast();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const isDisabled = isLoading || !plateNumber || (!wantFront && !wantBack);
 
@@ -44,99 +48,62 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const basket = {
+        plateNumber,
+        roadLegalSpacing,
+        wantFront,
+        wantBack,
+        front: wantFront
+          ? {
+              styleName: frontStyle.name,
+              sizeKey: frontSize.key,
+              borderType: frontBorder.type,
+              borderThickness: frontBorder.material?.thickness ?? null,
+              gelName: frontGel?.name ?? null,
+            }
+          : undefined,
+        rear: wantBack
+          ? {
+              styleName: rearStyle.name,
+              sizeKey: rearSize.key,
+              borderType: rearBorder.type,
+              borderThickness: rearBorder.material?.thickness ?? null,
+              gelName: rearGel?.name ?? null,
+            }
+          : undefined,
+      };
+
+      // Keep a local copy for safety (e.g. if server order store resets during dev).
+      saveBasket(basket);
+
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plateNumber,
-          roadLegalSpacing,
-          wantFront,
-          wantBack,
-          front: wantFront
-            ? {
-                styleName: frontStyle.name,
-                sizeKey: frontSize.key,
-                borderType: frontBorder.type,
-                borderThickness: frontBorder.material?.thickness ?? null,
-                gelName: frontGel?.name ?? null,
-              }
-            : undefined,
-          rear: wantBack
-            ? {
-                styleName: rearStyle.name,
-                sizeKey: rearSize.key,
-                borderType: rearBorder.type,
-                borderThickness: rearBorder.material?.thickness ?? null,
-                gelName: rearGel?.name ?? null,
-              }
-            : undefined,
-        }),
+        body: JSON.stringify(basket),
       });
 
-      if (res.status === 501) {
-        // Stripe not configured in this project yet — fall back to the old embed message.
-        const message = {
-          front_style: {
-            name: frontStyle.name,
-            size: frontSize.key,
-            border: {
-              type: frontBorder.type,
-              thickness: frontBorder.material?.thickness,
-            },
-            price: frontPrice,
-            gel: frontGel,
-          },
-          rear_style: {
-            name: rearStyle.name,
-            size: rearSize.key,
-            border: {
-              type: rearBorder.type,
-              thickness: rearBorder.material?.thickness,
-            },
-            price: rearPrice,
-            gel: rearGel,
-          },
-          plateNumber: plateNumber,
-        };
-        window.parent.postMessage(message, "https://plateguy.co.uk");
-        toast({
-          title: "Stripe not configured",
-          description:
-            "Set STRIPE_SECRET_KEY to enable Stripe Checkout. Sent to basket via postMessage fallback.",
-        });
-        return;
-      }
+      const json = (await res.json().catch(() => ({}))) as {
+        orderId?: string;
+        error?: string;
+      };
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
+      if (!res.ok || !json.orderId) {
         toast({
-          title: "Checkout error",
-          description: err?.error ?? "Failed to start checkout.",
+          title: "Basket error",
+          description: json?.error ?? "Failed to create order.",
           variant: "destructive",
         });
         return;
       }
 
-      const data = (await res.json()) as { url?: string };
-      if (!data.url) {
-        toast({
-          title: "Checkout error",
-          description: "Stripe checkout URL was missing.",
-          variant: "destructive",
-        });
-        return;
-      }
+      saveCurrentOrderId(json.orderId);
 
-      try {
-        if (window.top) window.top.location.href = data.url;
-        else window.location.href = data.url;
-      } catch {
-        window.location.href = data.url;
-      }
+      toast({ title: "Added to basket", description: "Continue to checkout." });
+      router.push("/checkout");
     } catch (e: any) {
       toast({
-        title: "Checkout error",
-        description: e?.message ?? "Failed to start checkout.",
+        title: "Basket error",
+        description: e?.message ?? "Failed to add to basket.",
         variant: "destructive",
       });
     } finally {
@@ -216,7 +183,7 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
         disabled={isDisabled}
         className="w-full bg-yellow-200 text-black font-bold py-3 rounded hover:bg-yellow/80 transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {isLoading ? "REDIRECTING…" : "ADD TO BASKET"}
+        {isLoading ? "ADDING…" : "ADD TO BASKET"}
       </button>
     </div>
   );

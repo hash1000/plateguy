@@ -1,6 +1,6 @@
 # PlateGuy Clone — Next.js + Tailwind CSS
 
-A professional clone of [plateguy.co.uk](https://plateguy.co.uk) built with Next.js 14 (App Router) and Tailwind CSS.
+A professional clone of [plateguy.co.uk](https://plateguy.co.uk) built with Next.js 15 (App Router) and Tailwind CSS.
 
 ## Features
 
@@ -41,11 +41,17 @@ npm install
 # Start development server
 npm run dev
 
+# If you want the default Next.js dev runner:
+npm run dev:next
+
 # Build for production
 npm run build
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
+
+### Windows note: `spawn EPERM`
+If `npm run dev:next` fails with `Error: spawn EPERM`, it’s usually a Windows security/policy restriction (often with projects under OneDrive/“Documents”). This repo’s default `npm run dev` uses an in-process dev runner (`scripts/next-dev-no-fork.js`) to avoid `child_process.fork`.
 
 ## Customisation
 
@@ -67,19 +73,21 @@ The plate builder and contact form are currently static. To connect:
 - Contact form → connect to email service (e.g. Resend, EmailJS)
 - Plate styles → fetch from your CMS/database
 
-### Stripe Checkout (Plate Builder)
-This project includes a simple Stripe Checkout integration for the Plate Builder’s **ADD TO BASKET** button.
+### Stripe card checkout (PaymentIntent)
+This project includes a simple **non-session** Stripe checkout flow:
+- Plate Builder → **ADD TO BASKET** saves the order locally and navigates to `/checkout`
+- `/checkout` collects delivery/contact details and takes **card payment** with Stripe Elements (PaymentIntent)
 
 - Copy `.env.example` → `.env.local`
-- Set `STRIPE_SECRET_KEY` (required)
-- Optionally set `NEXT_PUBLIC_SITE_URL` for success/cancel URLs
+- Set `STRIPE_SECRET_KEY` (required, server)
+- Set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (required, client)
 
 ### Security note (Next.js)
 If Vercel reports a vulnerable Next.js version (CVE alert), update `next` + `eslint-config-next` in `package.json` and redeploy.
 
 ## Tech Stack
 
-- Next.js 14 (App Router)
+- Next.js 15 (App Router)
 - TypeScript
 - Tailwind CSS
 - Lucide React (icons)

@@ -1,9 +1,13 @@
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ session_id?: string }>;
+  searchParams?: Promise<{
+    session_id?: string;
+    payment_intent?: string;
+    order_id?: string;
+  }>;
 }) {
-  const { session_id } = searchParams ? await searchParams : {};
+  const { session_id, payment_intent, order_id } = searchParams ? await searchParams : {};
 
   return (
     <main className="min-h-[70vh] bg-brand-dark text-white">
@@ -11,14 +15,15 @@ export default async function CheckoutSuccessPage({
         <h1 className="font-heading text-4xl mb-3">Payment successful</h1>
         <p className="text-white/70">
           Thanks — your order has been received.
-          {/* {session_id ? (
-            <>
-              {" "}
-              <span className="text-white/40">Session:</span>{" "}
-              <span className="font-mono text-white/80">{session_id}</span>
-            </>
-          ) : null} */}
         </p>
+        {session_id || payment_intent || order_id ? (
+          <p className="mt-3 text-sm text-white/50">
+            Ref:{" "}
+            <span className="font-mono text-white/70">
+              {order_id ?? session_id ?? payment_intent}
+            </span>
+          </p>
+        ) : null}
         <div className="mt-8 flex gap-3">
           <a
             href="/plate-builder"
