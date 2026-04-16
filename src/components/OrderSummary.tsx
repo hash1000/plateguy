@@ -6,12 +6,13 @@ import {
   increaseQty,
   decreaseQty,
 } from "@/lib/features/cartSlice";
+import type { PlateItem } from "@/lib/features/cartSlice";
 
 export default function OrderSummary() {
   const items = useAppSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
 
-  const total = items.reduce((acc: number, item: any) => {
+  const total = items.reduce((acc: number, item: PlateItem) => {
     const itemTotal =
       (item.frontPrice + item.rearPrice) * item.quantity;
     return acc + itemTotal;
@@ -23,7 +24,7 @@ export default function OrderSummary() {
 
       {items.length === 0 && <p>No items in cart</p>}
 
-      {items.map((item: any) => (
+      {items.map((item: PlateItem) => (
         <div
           key={item.id}
           className="border p-4 rounded-lg flex justify-between"

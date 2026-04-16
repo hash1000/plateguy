@@ -14,15 +14,16 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const email = String(body?.email ?? "").trim();
-  const password = String(body?.password ?? "");
+  const obj = typeof body === "object" && body ? (body as Record<string, unknown>) : {};
+  const email = typeof obj.email === "string" ? obj.email.trim() : "";
+  const password = typeof obj.password === "string" ? obj.password : "";
 
   if (email !== adminEmail || password !== adminPassword) {
     return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });

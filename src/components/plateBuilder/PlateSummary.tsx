@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { Border, GelColors, PlateSize } from "../../style/PlateStyles";
+import { Border, GelColors, Plate, PlateSize } from "../../style/PlateStyles";
 import { useAppDispatch } from "@/hooks/redux";
 import { addItem } from "../../lib/features/cartSlice";
 
@@ -11,8 +11,8 @@ interface PlateSummaryProps {
   roadLegalSpacing: boolean;
   wantFront: boolean;
   wantBack: boolean;
-  frontStyle: any;
-  rearStyle: any;
+  frontStyle: Plate;
+  rearStyle: Plate;
   frontPrice: number;
   rearPrice: number;
   frontSize: PlateSize;
@@ -40,27 +40,11 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
   rearGel,
 }) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const isDisabled = isLoading || !plateNumber || (!wantFront && !wantBack);
+  const isDisabled = !plateNumber || (!wantFront && !wantBack);
   const dispatch = useAppDispatch();
 
   function addToCartHandler() {
     if (isDisabled) return;
-
-    const id = [
-      plateNumber.trim().toUpperCase(),
-      roadLegalSpacing ? "road" : "show",
-      wantFront
-        ? `F:${frontStyle?.name ?? ""}:${frontSize.key}:${frontBorder.type}:${
-            frontBorder.material?.thickness ?? ""
-          }:${frontGel?.name ?? ""}`
-        : "F:none",
-      wantBack
-        ? `R:${rearStyle?.name ?? ""}:${rearSize.key}:${rearBorder.type}:${
-            rearBorder.material?.thickness ?? ""
-          }:${rearGel?.name ?? ""}`
-        : "R:none",
-    ].join("|");
 
     dispatch(
       addItem({

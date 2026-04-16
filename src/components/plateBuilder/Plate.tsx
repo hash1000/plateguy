@@ -90,38 +90,6 @@ const createHollowBorderShape = (
   return shape;
 };
 
-// Function to create and add a spotlight to the scene
-const addSpotlight = (
-  scene: THREE.Scene,
-  position: { x: number; y: number; z: number },
-  targetPosition: { x: number; y: number; z: number },
-  color: number = 0xffffff,
-  intensity: number = 1,
-) => {
-  // Create the spotlight
-  const spotlight = new THREE.SpotLight(color, intensity);
-
-  // Set the spotlight position
-  spotlight.position.set(position.x, position.y, position.z);
-
-  // Make the spotlight target the specified position (can be the plate or any other object)
-  spotlight.target.position.set(
-    targetPosition.x,
-    targetPosition.y,
-    targetPosition.z,
-  );
-
-  // Enable shadows for the spotlight (optional)
-  spotlight.castShadow = true;
-
-  // Add the spotlight to the scene
-  scene.add(spotlight);
-
-  // Optionally add a helper to visualize the spotlight in the scene (for debugging)
-  const spotLightHelper = new THREE.SpotLightHelper(spotlight);
-  scene.add(spotLightHelper);
-};
-
 interface PlateProps {
   plateStyle: Plate;
   plateNumber: string;
@@ -218,9 +186,9 @@ const ThreeDRectangle = ({
     scene.add(plate);
 
     const fontLoader = new FontLoader();
-    fontLoader.load("/fonts/Charles-WrightBold.json", (font: any) => {
+    fontLoader.load("/fonts/Charles-WrightBold.json", (font: unknown) => {
       // Use plate style properties (thickness, height, and fontSize) dynamically
-      const textGeometry: any = new TextGeometry(
+      const textGeometry = new TextGeometry(
         plateNumber == ""
           ? "PLATE NO"
           : plateNumber == ""
@@ -250,8 +218,8 @@ const ThreeDRectangle = ({
 
       // Compute the bounding box of the text geometry to center the text properly
       textGeometry.computeBoundingBox(); // Get bounding box to determine size
-      let textWidth: Number = 0;
-      let textHeight: Number = 0;
+      let textWidth = 0;
+      let textHeight = 0;
       if (textGeometry && textGeometry.boundingBox) {
         textWidth =
           textGeometry?.boundingBox?.max.x - textGeometry?.boundingBox?.min.x ||
@@ -277,7 +245,7 @@ const ThreeDRectangle = ({
 
     // OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
-    (controls as any).enableDamping = true;
+    controls.enableDamping = true;
 
     // Animation loop
     const animate = () => {
@@ -307,11 +275,11 @@ const ThreeDRectangle = ({
       renderer.dispose();
 
       // Dispose of the plate and text meshes if they exist
-      scene.traverse((object: any) => {
+      scene.traverse((object: THREE.Object3D) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
           if (Array.isArray(object.material)) {
-            object.material.forEach((mat: any) => mat.dispose());
+            object.material.forEach((mat: THREE.Material) => mat.dispose());
           } else {
             object.material.dispose();
           }
@@ -346,7 +314,7 @@ const ThreeDRectangle = ({
 
       // Find the existing plate mesh
       const plateMesh = scene.children.find(
-        (child: any) => child instanceof THREE.Mesh,
+        (child: THREE.Object3D) => child instanceof THREE.Mesh,
       ) as THREE.Mesh;
 
       if (plateMesh) {
@@ -438,7 +406,7 @@ const ThreeDRectangle = ({
       textMesh.geometry.dispose();
       if (textMesh.material) {
         if (Array.isArray(textMesh.material)) {
-          textMesh.material.forEach((mat: any) => mat.dispose());
+          textMesh.material.forEach((mat: THREE.Material) => mat.dispose());
         } else {
           textMesh.material.dispose();
         }
@@ -446,18 +414,23 @@ const ThreeDRectangle = ({
 
       // Dispose of old black layers
       const blackLayerMeshes = scene?.children.filter(
-        (child: any) => child.name === "blackLayerMesh",
+        (child: THREE.Object3D) => child.name === "blackLayerMesh",
       );
-      blackLayerMeshes?.forEach((mesh: any) => {
-        mesh.geometry.dispose();
-        mesh.material.dispose();
-        scene?.remove(mesh);
+      blackLayerMeshes?.forEach((mesh) => {
+        const m = mesh as THREE.Mesh;
+        m.geometry?.dispose?.();
+        if (Array.isArray(m.material)) {
+          m.material.forEach((mat: THREE.Material) => mat.dispose());
+        } else if (m.material) {
+          m.material.dispose();
+        }
+        scene?.remove(m);
       });
 
       // Load the font and create new geometry
       const fontLoader = new FontLoader();
       // Inside the fontLoader.load callback where the text geometry is created
-      fontLoader.load("/fonts/Charles-WrightBold.json", (font: any) => {
+      fontLoader.load("/fonts/Charles-WrightBold.json", (font: unknown) => {
         if (!font) {
           console.error("Font loading failed");
           return;
@@ -467,20 +440,22 @@ const ThreeDRectangle = ({
 
         // First, clean up any existing text meshes from square plates
         const existingTextMeshes = scene?.children.filter(
-          (child: any) => child.userData && child.userData.isPlateText === true,
+          (child: THREE.Object3D) =>
+            !!(child as THREE.Object3D & { userData?: { isPlateText?: boolean } })
+              .userData?.isPlateText,
         );
-        existingTextMeshes?.forEach((mesh: any) => {
-          mesh.geometry.dispose();
-          if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((mat: any) => mat.dispose());
-          } else if (mesh.material) {
-            mesh.material.dispose();
+        existingTextMeshes?.forEach((mesh) => {
+          const m = mesh as THREE.Mesh;
+          m.geometry?.dispose?.();
+          if (Array.isArray(m.material)) {
+            m.material.forEach((mat: THREE.Material) => mat.dispose());
+          } else if (m.material) {
+            m.material.dispose();
           }
-          scene?.remove(mesh);
+          scene?.remove(m);
         });
 
-        let isMotorbike = false;
-        let isSquarePlate = size.key.toLowerCase() === "square"; // Check if the plate is square
+        const isSquarePlate = size.key.toLowerCase() === "square"; // Check if the plate is square
 
         let firstLine = "";
         let secondLine = "";
@@ -731,7 +706,7 @@ const ThreeDRectangle = ({
 
           // Your existing code for regular plate text...
           // Create the thin black layer geometry
-          const blackLayerGeometry: any = new TextGeometry(
+          const blackLayerGeometry = new TextGeometry(
             plateNumber === "" ? "AB12 XYZ" : plateNumber,
             {
               font,
@@ -748,24 +723,26 @@ const ThreeDRectangle = ({
           if (roadLegalSpacing) {
             const letterSpacing = -0.1;
             [textGeometry, blackLayerGeometry].forEach((geometry) => {
-              geometry?.shapes &&
-                geometry?.shapes.forEach((shape: any, index: number) => {
-                  if (index > 0) {
-                    const offset = new THREE.Vector3(letterSpacing, 0, 0);
-                    shape.translate(offset.x, offset.y, offset.z);
-                  }
-                });
+              const shapes = (geometry as unknown as { shapes?: THREE.Shape[] }).shapes;
+              if (!shapes) return;
+              shapes.forEach((shape: THREE.Shape, index: number) => {
+                if (index > 0) {
+                  const offset = new THREE.Vector3(letterSpacing, 0, 0);
+                  shape.translate(offset.x, offset.y, offset.z);
+                }
+              });
             });
           } else {
             const letterSpacing = 0.1;
             [textGeometry, blackLayerGeometry].forEach((geometry) => {
-              geometry?.shapes &&
-                geometry?.shapes.forEach((shape: any, index: number) => {
-                  if (index > 0) {
-                    const offset = new THREE.Vector3(letterSpacing, 0, 0);
-                    shape.translate(offset.x, offset.y, offset.z);
-                  }
-                });
+              const shapes = (geometry as unknown as { shapes?: THREE.Shape[] }).shapes;
+              if (!shapes) return;
+              shapes.forEach((shape: THREE.Shape, index: number) => {
+                if (index > 0) {
+                  const offset = new THREE.Vector3(letterSpacing, 0, 0);
+                  shape.translate(offset.x, offset.y, offset.z);
+                }
+              });
             });
           }
 

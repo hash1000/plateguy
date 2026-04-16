@@ -4,6 +4,15 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AdminRecentOrderRow = {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: unknown;
+  status: string;
+  createdAt: Date;
+};
+
 export default async function AdminDashboardPage() {
   const [totalOrders, pendingOrders, totalRevenueAgg, recentOrders] =
     await Promise.all([
@@ -68,7 +77,7 @@ export default async function AdminDashboardPage() {
             {recentOrders.length === 0 ? (
               <div className="px-5 py-6 text-white/60">No orders yet.</div>
             ) : (
-              recentOrders.map((o) => (
+              (recentOrders as AdminRecentOrderRow[]).map((o: AdminRecentOrderRow) => (
                 <Link
                   key={o.id}
                   href={`/admin/orders/${o.id}`}

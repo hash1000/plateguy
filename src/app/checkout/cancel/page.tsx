@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default async function CheckoutCancelPage({
   searchParams,
 }: {
@@ -18,18 +20,18 @@ export default async function CheckoutCancelPage({
           </p>
         ) : null}
         <div className="mt-8 flex gap-3">
-          <a
+          <Link
             href="/cart"
             className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-5 py-3 font-bold text-brand-black hover:opacity-90 transition-opacity"
           >
             Back to cart
-          </a>
-          <a
+          </Link>
+          <Link
             href="/"
             className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-bold text-white hover:bg-white/10 transition-colors"
           >
             Back to home
-          </a>
+          </Link>
         </div>
       </section>
     </main>

@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const statuses = ["pending", "paid", "shipped", "delivered", "cancelled"] as const;
+type OrderStatus = (typeof statuses)[number];
 
 export default function OrderActions({
   orderId,
   currentStatus,
 }: {
   orderId: string;
-  currentStatus: string;
+  currentStatus: OrderStatus;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
@@ -32,8 +33,9 @@ export default function OrderActions({
         return;
       }
       router.refresh();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to update status.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to update status.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -54,8 +56,9 @@ export default function OrderActions({
       }
       setStatus("cancelled");
       router.refresh();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to cancel.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to cancel.";
+      setError(message);
     } finally {
       setLoading(false);
     }

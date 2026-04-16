@@ -353,7 +353,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
             <p className="text-brand-yellow text-xs font-semibold tracking-[0.3em] uppercase mb-2">
-              Buyer's Guide
+              Buyer&apos;s Guide
             </p>
             <h2 className="font-heading text-5xl sm:text-6xl text-white leading-none mb-4">
               WHICH PLATE IS

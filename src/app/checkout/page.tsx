@@ -78,6 +78,7 @@ export default function CheckoutPage() {
     try {
       const res = await fetch("/api/orders/create", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((item) => ({
             plateNumber: item.plateNumber,
@@ -100,18 +101,58 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = await res.json();
-
+      let data: { url?: string; error?: string; details?: unknown } = {};
       try {
-        if (window.top) window.top.location.href = data.url;
-        else window.location.href = data.url;
+        data = (await res.json()) as typeof data;
       } catch {
-        window.location.href = data.url;
+        toast({
+          title: "Checkout failed",
+          description: "Could not read the server response. Try again.",
+          variant: "destructive",
+        });
+        return;
       }
-    } catch (e: any) {
+
+      if (!res.ok) {
+        const detail =
+          typeof data.details === "string"
+            ? data.details
+            : data.details && typeof data.details === "object" &&
+                "message" in (data.details as { message?: string })
+              ? String((data.details as { message?: string }).message)
+              : "";
+        toast({
+          title: "Checkout failed",
+          description:
+            [typeof data.error === "string" ? data.error : null, detail]
+              .filter(Boolean)
+              .join(" ") || `Something went wrong (${res.status}).`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const checkoutUrl = data.url;
+      if (
+        typeof checkoutUrl !== "string" ||
+        !checkoutUrl.startsWith("http")
+      ) {
+        toast({
+          title: "Checkout failed",
+          description:
+            "No Stripe payment link was returned. Check STRIPE_SECRET_KEY and server logs.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Stripe Checkout Session URL — full browser navigation
+      window.location.assign(checkoutUrl);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Something went wrong.";
       toast({
         title: "Error",
-        description: err.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -120,74 +161,11 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
-      
-      {/* LEFT */}
-      <div className="lg:col-span-3 space-y-4">
-        {step === "details" && (
-          <>
-            <Field label="Email" value={email} onChange={setEmail} errors={errors} setErrors={setErrors} />
-            <Field label="First Name" value={firstName} onChange={setFirstName} errors={errors} setErrors={setErrors} />
-            <Field label="Last Name" value={lastName} onChange={setLastName} errors={errors} setErrors={setErrors} />
-            <Field label="Phone" value={phone} onChange={setPhone}  errors={errors} setErrors={setErrors} />
-
-            <button
-              onClick={() =>
-                validateDetails() && setStep("address")
-              }
-              className="bg-yellow-400 w-full py-3"
-            >
-              Continue
-            </button>
-          </>
-        )}
-
-        {step === "address" && (
-          <>
-            <Field label="Address" value={line1} onChange={setLine1} errors={errors} setErrors={setErrors} />
-            <Field label="City" value={city} onChange={setCity}  errors={errors} setErrors={setErrors} />
-            <Field label="Postcode" value={postcode} onChange={setPostcode} errors={errors} setErrors={setErrors} />
-
-            <button
-              onClick={handleSubmit}
-              className="bg-yellow-400 w-full py-3"
-            >
-              Pay £{total.toFixed(2)}
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* RIGHT → ORDER SUMMARY */}
-      <div className="lg:col-span-2 bg-gray-100 p-4 rounded">
-        <h2 className="font-bold text-lg mb-4">Order Summary</h2>
-
-        {cartItems.map((item) => (
-          <div key={item.id} className="mb-4 border-b pb-2">
-            <p className="font-bold">{item.plateNumber}</p>
-
-            <p className="text-sm">
-              £{(item.frontPrice + item.rearPrice).toFixed(2)}
-            </p>
-
-            <div className="flex items-center gap-2 mt-2">
-              <button onClick={() => dispatch(decreaseQty(item.id))}>-</button>
-              <span>{item.quantity}</span>
-              <button onClick={() => dispatch(increaseQty(item.id))}>+</button>
-              <button
-                onClick={() => dispatch(removeItem(item.id))}
-                className="text-red-500 ml-2"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
-
-        <div className="font-bold text-lg">
-          Total: £{total.toFixed(2)}
-        </div>
-        <div className="w-20" />
+    <div className="min-h-screen bg-white">
+      <header className="max-w-5xl mx-auto px-4 pt-6">
+        <Link href="/" className="text-sm font-semibold text-gray-900 hover:underline">
+          ← Back to home
+        </Link>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -201,7 +179,7 @@ export default function CheckoutPage() {
                   Contact Details
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  We'll send your order confirmation here.
+                  We&apos;ll send your order confirmation here.
                 </p>
               </div>
 
@@ -327,8 +305,8 @@ export default function CheckoutPage() {
                   onChange={(v: string) => dispatch(setAddress({ city: v }))}
                   placeholder="Wakefield"
                   errors={errors}
-                setErrors={setErrors}
-                required
+                  setErrors={setErrors}
+                  required
                 />
               </div>
 

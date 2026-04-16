@@ -48,7 +48,7 @@ export function Start({
         label="Your registration"
         id="registration"
         value={plateNumber}
-        onChange={(v: any) => setPlateNumber(v.toLocaleUpperCase())}
+        onChange={(v: string) => setPlateNumber(v.toLocaleUpperCase())}
         placeholder="WF3 2LS"
         errors={errors}
         setErrors={setErrors}
@@ -101,17 +101,15 @@ export function Start({
 
 interface STYLEProps {
   className?: string;
-  frontStyle: any;
-  rearStyle: any;
-  plateNumber: String;
+  frontStyle: Plate;
+  rearStyle: Plate;
+  plateNumber: string;
   frontGelColor: GelColors | null;
-  setFrontGelColor: any;
-  rearGelColor: GelColors | null;
-  setRearGelColor: any;
+  setFrontGelColor: React.Dispatch<React.SetStateAction<GelColors | null>>;
+  setRearGelColor: React.Dispatch<React.SetStateAction<GelColors | null>>;
   setFrontStyle: (style: Plate) => void;
   setRearStyle: (style: Plate) => void;
   sameAsFront: boolean;
-  setSameAsFront: (a: boolean) => void;
 }
 
 export function STYLE({
@@ -121,12 +119,10 @@ export function STYLE({
   plateNumber,
   setFrontStyle,
   setRearStyle,
-  rearGelColor,
   setRearGelColor,
   frontGelColor,
   setFrontGelColor,
   sameAsFront,
-  setSameAsFront,
 }: STYLEProps) {
   const [plateStyles, setPlateSetyles] = useState<Plate[]>(
     getStylesByLetterCount(7),
@@ -146,17 +142,6 @@ export function STYLE({
 
   const handleFrontStyleClick = (style: Plate) => {
     setFrontStyle(style);
-    if (style.name.includes("Neon")) {
-      toast({
-        title: "Not legal",
-        description: "This plate will not be road legal",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleRearStyleClick = (style: Plate) => {
-    setRearStyle(style);
     if (style.name.includes("Neon")) {
       toast({
         title: "Not legal",
@@ -261,16 +246,15 @@ export function STYLE({
 
 interface SizingProps {
   className?: string;
-  frontSize: any;
-  rearSize: any;
-  frontStyle: any;
-  rearStyle: any;
-  setFrontSize: (style: any) => void;
-  setRearSize: (style: any) => void;
+  frontSize: PlateSize;
+  rearSize: PlateSize;
+  frontStyle: Plate;
+  rearStyle: Plate;
+  setFrontSize: (style: PlateSize) => void;
+  setRearSize: (style: PlateSize) => void;
 }
 
 export function SIZING({ className, frontSize, rearSize, frontStyle, rearStyle, setFrontSize, setRearSize }: SizingProps) {
-  const plateStyles = getStylesByLetterCount(7); // Assuming getStylesByLetterCount is a function that returns plate styles
   const [sameAsFront, setSameAsFront] = useState(true);
 
   useEffect(() => {
@@ -314,7 +298,7 @@ export function SIZING({ className, frontSize, rearSize, frontStyle, rearStyle, 
           <p className="px-2 py-2">{frontStyle.name}</p>
           <div className="px-2 flex flex-wrap gap-1">
             {
-              frontStyle.frontPlate.sizes.map((size: any) => (
+              frontStyle.frontPlate.sizes.map((size: PlateSize) => (
                 <Button onClick={() => handleFrontSizeClick(size)} className={`bg-white p-1  border-2 ${frontSize.key == size.key ? "border-black " : ""}`} key={size.key}>{size.key + "-" + size.width + "x" + size.height}</Button>
               ))
             }
@@ -338,7 +322,7 @@ export function SIZING({ className, frontSize, rearSize, frontStyle, rearStyle, 
             <p className="px-2 py-2">{rearStyle.name}</p>
             <div className="px-2 flex flex-wrap gap-1">
               {
-                rearStyle.rearPlate.sizes.map((size: any) => (
+                rearStyle.rearPlate.sizes.map((size: PlateSize) => (
                   <Button onClick={() => handleRearSizeClick(size)} className={`bg-white p-1  border-2 ${rearSize.key == size.key ? "border-black " : ""}`} key={size.key}>{size.key + "-" + size.width + "x" + size.height}</Button>
                 ))
               }
@@ -463,7 +447,7 @@ export function BORDER({
           <Switch
             className="mr-3"
             checked={sameAsFront}
-            onCheckedChange={(e: any) => setSameAsFront(e)}
+            onCheckedChange={(e: boolean) => setSameAsFront(e)}
           />
           <label>Same as front</label>
         </div>

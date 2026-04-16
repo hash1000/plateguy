@@ -34,7 +34,7 @@ export default function PlateBuilder() {
   const [rearPrice, setRearPrice] = useState(0);
   const [frontGelColor, setFrontGelColor] = useState<GelColors | null>(null);
   const [rearGelColor, setRearGelColor] = useState<GelColors | null>(null);
-  const [sameAsFront, setSameAsFront] = useState(true);
+  const sameAsFront = true;
 
   const [isValidPlate, setIsValidPlate] = useState(false);
 
@@ -121,7 +121,7 @@ export default function PlateBuilder() {
 
     if (frontSizes && frontSizes.length > 0) {
       const standardFront =
-        frontSizes.find((size: any) => size.key === "standard") ||
+        frontSizes.find((size) => size.key === "standard") ||
         frontSizes[0];
       console.log("Frontsize ", standardFront);
 
@@ -130,7 +130,7 @@ export default function PlateBuilder() {
 
     if (rearSizes && rearSizes.length > 0) {
       const standardRear =
-        rearSizes.find((size: any) => size.key === "standard") || rearSizes[0];
+        rearSizes.find((size) => size.key === "standard") || rearSizes[0];
       console.log("Rearsize ", standardRear);
 
       setRearSize(standardRear);
@@ -166,15 +166,16 @@ export default function PlateBuilder() {
         variant: "destructive",
       });
     }
-  }, [roadLegalSpacing]);
+  }, [roadLegalSpacing, toast]);
 
   const [isRear, setIsRear] = useState(false);
 
   useEffect(() => {
-    const handleMessage = (event: any) => {
-      if (event.data.plateNumber) {
-        setPlateNumber(event.data.plateNumber);
-      }
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data as unknown;
+      if (typeof data !== "object" || !data) return;
+      const plateNumber = (data as Record<string, unknown>).plateNumber;
+      if (typeof plateNumber === "string") setPlateNumber(plateNumber);
     };
 
     window.addEventListener("message", handleMessage);
@@ -250,7 +251,6 @@ export default function PlateBuilder() {
                 <STYLE
                   frontGelColor={frontGelColor}
                   setFrontGelColor={setFrontGelColor}
-                  rearGelColor={rearGelColor}
                   setRearGelColor={setRearGelColor}
                   rearStyle={rearStyle}
                   frontStyle={frontStyle}
@@ -258,7 +258,6 @@ export default function PlateBuilder() {
                   setRearStyle={setRearStyle}
                   setFrontStyle={setFrontStyle}
                   sameAsFront={sameAsFront}
-                  setSameAsFront={setSameAsFront}
                 />
               </TabsContent>
               <TabsContent value="sizing" className="md:col-span-2 h-[390px]">

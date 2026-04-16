@@ -20,6 +20,20 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
 )
 Input.displayName = "Input"
 
+type FieldErrors = Record<string, string>;
+
+type FieldProps = {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: React.HTMLInputTypeAttribute;
+  placeholder?: string;
+  required?: boolean;
+  errors: FieldErrors;
+  setErrors: React.Dispatch<React.SetStateAction<FieldErrors>>;
+};
+
 const Field = ({
     label,
     id,
@@ -30,7 +44,7 @@ const Field = ({
     required,
     errors, 
     setErrors
-  }: any) => {
+  }: FieldProps) => {
     return(
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-sm font-semibold text-yellow-400">
@@ -42,9 +56,8 @@ const Field = ({
         type={type}
         value={value}
         onChange={(e) => {
-          console.log(">>",e.target.value);
           onChange(e.target.value);
-          if (errors[id]) setErrors((prev: any) => ({ ...prev, [id]: "" }));
+          if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
         }}
         placeholder={placeholder}
         className={cn(`border rounded-md px-3 py-2.5 text-black text-sm outline-none transition focus:ring-2 focus:ring-yellow-400 focus:border-transparent ${

@@ -219,16 +219,22 @@ export async function POST(req: Request) {
     body: params.toString(),
   });
 
-  const json = (await stripeRes.json()) as any;
+  const json = (await stripeRes.json()) as
+    | { url?: string; id?: string; error?: { message?: string } }
+    | Record<string, unknown>;
   if (!stripeRes.ok) {
     return NextResponse.json(
       {
         error: "Stripe error creating checkout session.",
-        details: json?.error?.message ?? json,
+        details:
+          typeof json === "object" && json && "error" in json
+            ? (json as { error?: { message?: string } }).error?.message ?? json
+            : json,
       },
       { status: 500 },
     );
   }
 
-  return NextResponse.json({ url: json?.url, id: json?.id });
+  const ok = typeof json === "object" && json ? (json as { url?: string; id?: string }) : {};
+  return NextResponse.json({ url: ok.url, id: ok.id });
 }

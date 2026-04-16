@@ -2,6 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import OrderActions from "./OrderActions";
 
+type OrderItemRow = {
+  id: number;
+  plateNumber: string;
+  frontStyle: string | null;
+  rearStyle: string | null;
+  frontPrice: unknown;
+  rearPrice: unknown;
+  quantity: number;
+};
+
 export const runtime = "nodejs";
 
 export default async function AdminOrderDetailsPage({
@@ -79,7 +89,7 @@ export default async function AdminOrderDetailsPage({
                 <p className="font-bold">£{Number(order.totalAmount).toFixed(2)}</p>
               </div>
               <div className="divide-y divide-white/10">
-                {order.items.map((it) => (
+                {(order.items as OrderItemRow[]).map((it) => (
                   <div key={it.id} className="px-5 py-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>

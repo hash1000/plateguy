@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import type { OrderStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
+
+type AdminOrderRow = {
+  id: string;
+  customerName: string;
+  totalAmount: unknown;
+  status: string;
+  createdAt: Date;
+};
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -12,9 +21,9 @@ export default async function AdminOrdersPage({
   const status = sp.status?.trim() || "";
   const q = sp.q?.trim() || "";
 
-  const orders = await prisma.order.findMany({
+  const orders = (await prisma.order.findMany({
     where: {
-      ...(status ? { status: status as any } : {}),
+      ...(status ? { status: status as OrderStatus } : {}),
       ...(q
         ? {
             OR: [
@@ -34,7 +43,7 @@ export default async function AdminOrdersPage({
       status: true,
       createdAt: true,
     },
-  });
+  })) as AdminOrderRow[];
 
   const statuses = ["", "pending", "paid", "shipped", "delivered", "cancelled"];
 
@@ -83,7 +92,7 @@ export default async function AdminOrdersPage({
             {orders.length === 0 ? (
               <div className="px-5 py-6 text-white/60">No orders found.</div>
             ) : (
-              orders.map((o) => (
+              orders.map((o: AdminOrderRow) => (
                 <Link
                   key={o.id}
                   href={`/admin/orders/${o.id}`}

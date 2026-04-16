@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import type Stripe from "stripe";
 
 export const runtime = "nodejs";
 
@@ -20,12 +21,13 @@ export async function POST(req: Request) {
 
   const rawBody = Buffer.from(await req.arrayBuffer());
 
-  let event: any;
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Invalid webhook signature.", details: err?.message ?? String(err) },
+      { error: "Invalid webhook signature.", details: message },
       { status: 400 },
     );
   }
