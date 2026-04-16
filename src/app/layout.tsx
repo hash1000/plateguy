@@ -5,6 +5,9 @@ import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "./providers";
+import { persistor, store } from "@/lib/store";
+import { PersistGate } from "redux-persist/integration/react";
+import { Provider } from "react-redux";
 
 export const metadata: Metadata = {
   title: "PlateGuy | Premium 3D & 4D Number Plates UK",
@@ -29,13 +32,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-brand-black text-white font-body antialiased" suppressHydrationWarning>
-        <AnnouncementBar />
-        <Navbar />
-        <main>
-          <Providers>{children}</Providers>
-        </main>
-        <Toaster />
-        <Footer />
+        <Providers> {/* ✅ USE THIS */}
+          <AnnouncementBar />
+          <Navbar />
+
+          <main>{children}</main>
+
+          <Toaster />
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
