@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Border, GelColors, PlateSize } from "../../style/PlateStyles";
 import { useAppDispatch } from "@/hooks/redux";
@@ -43,8 +43,6 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const isDisabled = isLoading || !plateNumber || (!wantFront && !wantBack);
   const dispatch = useAppDispatch();
-
-  const isDisabled = !plateNumber || (!wantFront && !wantBack);
 
   function addToCartHandler() {
     if (isDisabled) return;
