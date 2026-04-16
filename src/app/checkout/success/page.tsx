@@ -1,9 +1,21 @@
-export default async function CheckoutSuccessPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ session_id?: string }>;
-}) {
-  const { session_id } = searchParams ? await searchParams : {};
+"use client";
+
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useAppDispatch } from "@/hooks/redux";
+import { clearCart } from "@/lib/features/cartSlice";
+import { resetCheckout } from "@/lib/features/checkoutSlice";
+
+export default function CheckoutSuccessPage() {
+  const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const orderId = searchParams.get("order_id");
+
+  useEffect(() => {
+    dispatch(clearCart());
+    dispatch(resetCheckout());
+  }, [dispatch]);
 
   return (
     <main className="min-h-[70vh] bg-brand-dark text-white">
@@ -11,13 +23,20 @@ export default async function CheckoutSuccessPage({
         <h1 className="font-heading text-4xl mb-3">Payment successful</h1>
         <p className="text-white/70">
           Thanks — your order has been received.
-          {/* {session_id ? (
+          {sessionId ? (
             <>
               {" "}
               <span className="text-white/40">Session:</span>{" "}
-              <span className="font-mono text-white/80">{session_id}</span>
+              <span className="font-mono text-white/80">{sessionId}</span>
             </>
-          ) : null} */}
+          ) : null}
+          {orderId ? (
+            <>
+              {" "}
+              <span className="text-white/40">Order:</span>{" "}
+              <span className="font-mono text-white/80">{orderId}</span>
+            </>
+          ) : null}
         </p>
         <div className="mt-8 flex gap-3">
           <a

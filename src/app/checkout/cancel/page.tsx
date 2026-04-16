@@ -1,4 +1,10 @@
-export default function CheckoutCancelPage() {
+export default async function CheckoutCancelPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ order_id?: string }>;
+}) {
+  const { order_id } = searchParams ? await searchParams : {};
+
   return (
     <main className="min-h-[70vh] bg-brand-dark text-white">
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
@@ -6,12 +12,17 @@ export default function CheckoutCancelPage() {
         <p className="text-white/70">
           No payment was taken. You can go back to the builder and try again.
         </p>
+        {order_id ? (
+          <p className="text-white/50 text-sm mt-2">
+            Order: <span className="font-mono">{order_id}</span>
+          </p>
+        ) : null}
         <div className="mt-8 flex gap-3">
           <a
-            href="/plate-builder"
+            href="/cart"
             className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-5 py-3 font-bold text-brand-black hover:opacity-90 transition-opacity"
           >
-            Return to builder
+            Back to cart
           </a>
           <a
             href="/"

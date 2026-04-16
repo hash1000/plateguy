@@ -1,103 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Field } from "@/components/ui/input";
 import OrderSummary from "@/components/OrderSummary";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface CheckoutData {
-  plateNumber: string;
-  roadLegalSpacing: boolean;
-  wantFront: boolean;
-  wantBack: boolean;
-  frontPrice: number;
-  rearPrice: number;
-  front?: {
-    styleName: string;
-    sizeKey: string;
-    borderType?: string | null;
-    borderThickness?: number | null;
-    gelName?: string | null;
-  };
-  rear?: {
-    styleName: string;
-    sizeKey: string;
-    borderType?: string | null;
-    borderThickness?: number | null;
-    gelName?: string | null;
-  };
-}
-
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { setAddress, setContact, setStep } from "@/lib/features/checkoutSlice";
+import Link from "next/link";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const dispatch = useAppDispatch();
 
-  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+  const items = useAppSelector((state) => state.cart.items);
+  const step = useAppSelector((state) => state.checkout.step);
+  const contact = useAppSelector((state) => state.checkout.contact);
+  const address = useAppSelector((state) => state.checkout.address);
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<"details" | "address">("details");
-
-  // Form fields
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [line1, setLine1] = useState("");
-  const [line2, setLine2] = useState("");
-  const [city, setCity] = useState("");
-  const [county, setCounty] = useState("");
-  const [postcode, setPostcode] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load cart data from sessionStorage
   useEffect(() => {
-    const raw = sessionStorage.getItem("plateCheckout");
-    if (!raw) {
-      router.replace("/");
-      return;
-    }
-    try {
-      setCheckoutData(JSON.parse(raw));
-    } catch {
-      router.replace("/");
-    }
-  }, [router]);
+    if (items.length === 0) router.replace("/cart");
+  }, [items.length, router]);
 
-  if (!checkoutData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-400" />
-      </div>
-    );
-  }
-
-  const total =
-    (checkoutData.wantFront ? checkoutData.frontPrice : 0) +
-    (checkoutData.wantBack ? checkoutData.rearPrice : 0);
+  const total = useMemo(() => {
+    return items.reduce((acc, item) => {
+      return acc + (item.frontPrice + item.rearPrice) * item.quantity;
+    }, 0);
+  }, [items]);
 
   // ── Validation ──────────────────────────────────────────────────────────────
   function validateDetails() {
     const e: Record<string, string> = {};
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (
+      !contact.email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)
+    )
       e.email = "Enter a valid email address";
-    if (!firstName.trim()) e.firstName = "First name is required";
-    if (!lastName.trim()) e.lastName = "Last name is required";
-    if (!phone.trim()) e.phone = "Phone. number is required";
+    if (!contact.firstName.trim()) e.firstName = "First name is required";
+    if (!contact.lastName.trim()) e.lastName = "Last name is required";
+    if (!contact.phone.trim()) e.phone = "Phone. number is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
   function validateAddress() {
     const e: Record<string, string> = {};
-    if (!line1.trim()) e.line1 = "Address line 1 is required";
-    if (!city.trim()) e.city = "Town / City is required";
-    if (!postcode.trim()) e.postcode = "Postcode is required";
+    if (!address.line1.trim()) e.line1 = "Address line 1 is required";
+    if (!address.city.trim()) e.city = "Town / City is required";
+    if (!address.postcode.trim()) e.postcode = "Postcode is required";
     else if (
-      !/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(postcode.trim())
+      !/^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i.test(address.postcode.trim())
     )
       e.postcode = "Enter a valid UK postcode";
     setErrors(e);
@@ -106,24 +63,38 @@ export default function CheckoutPage() {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
   async function handleSubmit() {
+    if (items.length === 0) {
+      toast({
+        title: "Your cart is empty",
+        description: "Add a plate before checking out.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!validateAddress()) return;
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/orders/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...checkoutData,
-          customerEmail: email,
-          customerName: `${firstName} ${lastName}`,
-          customerPhone: phone,
+          items: items.map((item) => ({
+            plateNumber: item.plateNumber,
+            roadLegalSpacing: item.roadLegalSpacing,
+            quantity: item.quantity,
+            front: item.front,
+            rear: item.rear,
+          })),
+          customerEmail: contact.email,
+          customerName: `${contact.firstName} ${contact.lastName}`,
+          customerPhone: contact.phone,
           shippingAddress: {
-            line1,
-            line2: line2 || null,
-            city,
-            state: county,
-            postal_code: postcode,
+            line1: address.line1,
+            line2: address.line2 || null,
+            city: address.city,
+            state: address.county,
+            postal_code: address.postcode,
             country: "GB",
           },
         }),
@@ -157,8 +128,6 @@ export default function CheckoutPage() {
         });
         return;
       }
-
-      sessionStorage.removeItem("plateCheckout");
 
       try {
         if (window.top) window.top.location.href = data.url;
@@ -238,8 +207,8 @@ export default function CheckoutPage() {
                 label="Email Address"
                 id="email"
                 type="email"
-                value={email}
-                onChange={setEmail}
+                value={contact.email}
+                onChange={(v: string) => dispatch(setContact({ email: v }))}
                 placeholder="you@example.com"
                 errors={errors}
                 setErrors={setErrors}
@@ -250,8 +219,8 @@ export default function CheckoutPage() {
                 <Field
                   label="First Name"
                   id="firstName"
-                  value={firstName}
-                  onChange={setFirstName}
+                  value={contact.firstName}
+                  onChange={(v: string) => dispatch(setContact({ firstName: v }))}
                   placeholder="John"
                   errors={errors}
                   setErrors={setErrors}
@@ -260,8 +229,8 @@ export default function CheckoutPage() {
                 <Field
                   label="Last Name"
                   id="lastName"
-                  value={lastName}
-                  onChange={setLastName}
+                  value={contact.lastName}
+                  onChange={(v: string) => dispatch(setContact({ lastName: v }))}
                   placeholder="Smith"
                   errors={errors}
                   setErrors={setErrors}
@@ -273,8 +242,8 @@ export default function CheckoutPage() {
                 label="Phone Number"
                 id="phone"
                 type="tel"
-                value={phone}
-                onChange={setPhone}
+                value={contact.phone}
+                onChange={(v: string) => dispatch(setContact({ phone: v }))}
                 placeholder="07700 900000"
                 errors={errors}
                 setErrors={setErrors}
@@ -283,7 +252,7 @@ export default function CheckoutPage() {
 
               <button
                 onClick={() => {
-                  if (validateDetails()) setStep("address");
+                  if (validateDetails()) dispatch(setStep("address"));
                 }}
                 className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-3.5 rounded-lg transition text-sm tracking-wide"
               >
@@ -297,7 +266,7 @@ export default function CheckoutPage() {
             <div className="space-y-5">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setStep("details")}
+                  onClick={() => dispatch(setStep("details"))}
                   className="text-gray-400 hover:text-gray-700 transition text-sm"
                 >
                   ←
@@ -317,11 +286,11 @@ export default function CheckoutPage() {
                 <div>
                   <p className="text-xs text-gray-500">Contact</p>
                   <p className="text-sm font-semibold text-gray-800">
-                    {firstName} {lastName} · {email}
+                    {contact.firstName} {contact.lastName} · {contact.email}
                   </p>
                 </div>
                 <button
-                  onClick={() => setStep("details")}
+                  onClick={() => dispatch(setStep("details"))}
                   className="text-xs text-yellow-700 hover:underline font-medium"
                 >
                   Edit
@@ -331,8 +300,8 @@ export default function CheckoutPage() {
               <Field
                 label="Address Line 1"
                 id="line1"
-                value={line1}
-                onChange={setLine1}
+                value={address.line1}
+                onChange={(v: string) => dispatch(setAddress({ line1: v }))}
                 placeholder="38 Bluebell Road"
                 errors={errors}
                 setErrors={setErrors}
@@ -341,8 +310,8 @@ export default function CheckoutPage() {
               <Field
                 label="Address Line 2"
                 id="line2"
-                value={line2}
-                onChange={setLine2}
+                value={address.line2}
+                onChange={(v: string) => dispatch(setAddress({ line2: v }))}
                 placeholder="Apartment, suite, etc. (optional)"
                 errors={errors}
                 setErrors={setErrors}
@@ -352,8 +321,8 @@ export default function CheckoutPage() {
                 <Field
                   label="Town / City"
                   id="city"
-                  value={city}
-                  onChange={setCity}
+                  value={address.city}
+                  onChange={(v: string) => dispatch(setAddress({ city: v }))}
                   placeholder="Wakefield"
                   errors={errors}
                 setErrors={setErrors}
@@ -364,8 +333,10 @@ export default function CheckoutPage() {
               <Field
                 label="Postcode"
                 id="postcode"
-                value={postcode}
-                onChange={(v: any) => setPostcode(v.toUpperCase())}
+                value={address.postcode}
+                onChange={(v: string) =>
+                  dispatch(setAddress({ postcode: v.toUpperCase() }))
+                }
                 placeholder="WF3 2LS"
                 errors={errors}
                 setErrors={setErrors}
@@ -399,6 +370,15 @@ export default function CheckoutPage() {
 
         {/* ── Right: Order Summary ──────────────────────────────────────────── */}
         <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Order summary</h2>
+            <Link
+              href="/plate-builder"
+              className="text-sm font-semibold text-yellow-700 hover:underline"
+            >
+              Add another plate
+            </Link>
+          </div>
           <OrderSummary />
         </div>
       </main>

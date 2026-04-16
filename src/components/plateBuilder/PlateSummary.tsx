@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Border, GelColors, PlateSize } from "../../style/PlateStyles";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "@/hooks/redux";
 import { addItem } from "../../lib/features/cartSlice";
 
 interface PlateSummaryProps {
@@ -40,20 +40,33 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const isDisabled = isLoading || !plateNumber || (!wantFront && !wantBack);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   function addToCartHandler() {
     if (isDisabled) return;
 
-    const id = `${plateNumber}-${Date.now()}`;
+    const id = [
+      plateNumber.trim().toUpperCase(),
+      roadLegalSpacing ? "road" : "show",
+      wantFront
+        ? `F:${frontStyle?.name ?? ""}:${frontSize.key}:${frontBorder.type}:${
+            frontBorder.material?.thickness ?? ""
+          }:${frontGel?.name ?? ""}`
+        : "F:none",
+      wantBack
+        ? `R:${rearStyle?.name ?? ""}:${rearSize.key}:${rearBorder.type}:${
+            rearBorder.material?.thickness ?? ""
+          }:${rearGel?.name ?? ""}`
+        : "R:none",
+    ].join("|");
 
     dispatch(
       addItem({
         id,
         plateNumber,
         roadLegalSpacing,
-        frontPrice,
-        rearPrice,
+        frontPrice: wantFront ? frontPrice : 0,
+        rearPrice: wantBack ? rearPrice : 0,
         quantity: 1,
         front: wantFront
           ? {
@@ -76,7 +89,7 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
       })
     );
 
-    router.push("/checkout"); // 🔥 go to order summary page
+    router.push("/checkout");
   }
 
   const total =

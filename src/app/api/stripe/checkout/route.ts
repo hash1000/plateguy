@@ -11,14 +11,36 @@ type PlateSidePayload = {
   gelName?: string | null;
 };
 
-type CheckoutPayload = {
+type CheckoutItemPayload = {
   plateNumber: string;
   roadLegalSpacing: boolean;
-  wantFront: boolean;
-  wantBack: boolean;
+  quantity?: number;
   front?: PlateSidePayload;
   rear?: PlateSidePayload;
 };
+
+type ShippingAddressPayload = {
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state?: string | null;
+  postal_code: string;
+  country: string;
+};
+
+type CheckoutPayload =
+  | {
+      items: CheckoutItemPayload[];
+      customerEmail?: string;
+      customerName?: string;
+      customerPhone?: string;
+      shippingAddress?: ShippingAddressPayload;
+    }
+  | (CheckoutItemPayload & {
+      // legacy single-item payload
+      wantFront?: boolean;
+      wantBack?: boolean;
+    });
 
 function toPence(amount: number) {
   return Math.max(0, Math.round(amount * 100));
@@ -55,87 +77,105 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const plateNumber = (payload.plateNumber ?? "").toString().trim();
-  if (!plateNumber) {
-    return NextResponse.json({ error: "plateNumber is required." }, { status: 400 });
+  const orderItems: CheckoutItemPayload[] =
+    "items" in payload ? payload.items : [payload];
+
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
+    return NextResponse.json({ error: "items must be a non-empty array." }, { status: 400 });
   }
 
-  const wantFront = !!payload.wantFront;
-  const wantBack = !!payload.wantBack;
-  if (!wantFront && !wantBack) {
-    return NextResponse.json(
-      { error: "Select at least one plate (front or rear)." },
-      { status: 400 },
-    );
-  }
+  const items: Array<{
+    name: string;
+    unit_amount: number;
+    quantity: number;
+    metadata: Record<string, string>;
+  }> = [];
 
-  const items: Array<{ name: string; unit_amount: number; metadata: Record<string, string> }> =
-    [];
-
-  if (wantFront) {
-    if (!payload.front) {
-      return NextResponse.json({ error: "front is required." }, { status: 400 });
-    }
-    const price = lookupPrice(payload.front.styleName, payload.front.sizeKey, "front");
-    if (price == null) {
+  for (let idx = 0; idx < orderItems.length; idx += 1) {
+    const orderItem = orderItems[idx];
+    const plateNumber = (orderItem.plateNumber ?? "").toString().trim();
+    if (!plateNumber) {
       return NextResponse.json(
-        { error: "Unknown front style/size selection." },
-        { status: 400 },
-      );
-    }
-    const unitAmount = toPence(price);
-    if (unitAmount <= 0) {
-      return NextResponse.json(
-        { error: "Front plate price is zero; cannot create a payment checkout." },
+        { error: `items[${idx}].plateNumber is required.` },
         { status: 400 },
       );
     }
 
-    items.push({
-      name: "Front number plate",
-      unit_amount: unitAmount,
-      metadata: {
-        side: "front",
-        style: payload.front.styleName,
-        size: payload.front.sizeKey,
-        border_type: payload.front.borderType ?? "",
-        border_thickness: (payload.front.borderThickness ?? "").toString(),
-        gel: payload.front.gelName ?? "",
-      },
-    });
-  }
-
-  if (wantBack) {
-    if (!payload.rear) {
-      return NextResponse.json({ error: "rear is required." }, { status: 400 });
-    }
-    const price = lookupPrice(payload.rear.styleName, payload.rear.sizeKey, "rear");
-    if (price == null) {
+    const quantity = Math.max(1, Math.floor(Number(orderItem.quantity ?? 1)));
+    const wantFront = !!orderItem.front;
+    const wantRear = !!orderItem.rear;
+    if (!wantFront && !wantRear) {
       return NextResponse.json(
-        { error: "Unknown rear style/size selection." },
-        { status: 400 },
-      );
-    }
-    const unitAmount = toPence(price);
-    if (unitAmount <= 0) {
-      return NextResponse.json(
-        { error: "Rear plate price is zero; cannot create a payment checkout." },
+        { error: `items[${idx}] must include front or rear.` },
         { status: 400 },
       );
     }
 
-    items.push({
-      name: "Rear number plate",
-      unit_amount: unitAmount,
-      metadata: {
-        side: "rear",
-        style: payload.rear.styleName,
-        size: payload.rear.sizeKey,
-        border_type: payload.rear.borderType ?? "",
-        border_thickness: (payload.rear.borderThickness ?? "").toString(),
-        gel: payload.rear.gelName ?? "",
-      },
-    });
+    if (wantFront) {
+      const price = lookupPrice(orderItem.front!.styleName, orderItem.front!.sizeKey, "front");
+      if (price == null) {
+        return NextResponse.json(
+          { error: `Unknown front style/size for items[${idx}].` },
+          { status: 400 },
+        );
+      }
+      const unitAmount = toPence(price);
+      if (unitAmount <= 0) {
+        return NextResponse.json(
+          { error: `Front plate price is zero for items[${idx}].` },
+          { status: 400 },
+        );
+      }
+
+      items.push({
+        name: `Front number plate (${plateNumber})`,
+        unit_amount: unitAmount,
+        quantity,
+        metadata: {
+          plate_number: plateNumber,
+          road_legal_spacing: orderItem.roadLegalSpacing ? "true" : "false",
+          side: "front",
+          style: orderItem.front!.styleName,
+          size: orderItem.front!.sizeKey,
+          border_type: orderItem.front!.borderType ?? "",
+          border_thickness: (orderItem.front!.borderThickness ?? "").toString(),
+          gel: orderItem.front!.gelName ?? "",
+        },
+      });
+    }
+
+    if (wantRear) {
+      const price = lookupPrice(orderItem.rear!.styleName, orderItem.rear!.sizeKey, "rear");
+      if (price == null) {
+        return NextResponse.json(
+          { error: `Unknown rear style/size for items[${idx}].` },
+          { status: 400 },
+        );
+      }
+      const unitAmount = toPence(price);
+      if (unitAmount <= 0) {
+        return NextResponse.json(
+          { error: `Rear plate price is zero for items[${idx}].` },
+          { status: 400 },
+        );
+      }
+
+      items.push({
+        name: `Rear number plate (${plateNumber})`,
+        unit_amount: unitAmount,
+        quantity,
+        metadata: {
+          plate_number: plateNumber,
+          road_legal_spacing: orderItem.roadLegalSpacing ? "true" : "false",
+          side: "rear",
+          style: orderItem.rear!.styleName,
+          size: orderItem.rear!.sizeKey,
+          border_type: orderItem.rear!.borderType ?? "",
+          border_thickness: (orderItem.rear!.borderThickness ?? "").toString(),
+          gel: orderItem.rear!.gelName ?? "",
+        },
+      });
+    }
   }
 
   const baseUrl = getBaseUrl(req);
@@ -145,11 +185,23 @@ export async function POST(req: Request) {
   params.set("success_url", `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${baseUrl}/checkout/cancel`);
 
-  params.set("metadata[plate_number]", plateNumber);
-  params.set("metadata[road_legal_spacing]", payload.roadLegalSpacing ? "true" : "false");
+  if ("items" in payload) {
+    if (payload.customerEmail) params.set("customer_email", payload.customerEmail);
+    if (payload.customerName) params.set("metadata[customer_name]", payload.customerName);
+    if (payload.customerPhone) params.set("metadata[customer_phone]", payload.customerPhone);
+    if (payload.shippingAddress) {
+      const a = payload.shippingAddress;
+      params.set("metadata[ship_line1]", a.line1);
+      if (a.line2) params.set("metadata[ship_line2]", a.line2);
+      params.set("metadata[ship_city]", a.city);
+      if (a.state) params.set("metadata[ship_state]", a.state);
+      params.set("metadata[ship_postal_code]", a.postal_code);
+      params.set("metadata[ship_country]", a.country);
+    }
+  }
 
   items.forEach((item, i) => {
-    params.set(`line_items[${i}][quantity]`, "1");
+    params.set(`line_items[${i}][quantity]`, item.quantity.toString());
     params.set(`line_items[${i}][price_data][currency]`, "gbp");
     params.set(`line_items[${i}][price_data][unit_amount]`, item.unit_amount.toString());
     params.set(`line_items[${i}][price_data][product_data][name]`, item.name);

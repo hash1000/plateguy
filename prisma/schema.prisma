@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  delivered
+  cancelled
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  customerName    String      @map("customer_name")
+  customerEmail   String      @map("customer_email")
+  customerPhone   String      @map("customer_phone")
+  totalAmount     Decimal     @map("total_amount") @db.Decimal(10, 2)
+  status          OrderStatus @default(pending)
+  stripeSessionId String?     @unique @map("stripe_session_id")
+
+  shippingLine1    String? @map("shipping_line1")
+  shippingLine2    String? @map("shipping_line2")
+  shippingCity     String? @map("shipping_city")
+  shippingCounty   String? @map("shipping_county")
+  shippingPostcode String? @map("shipping_postcode")
+  shippingCountry  String? @map("shipping_country")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items OrderItem[]
+
+  @@index([status, createdAt])
+  @@index([customerEmail])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         Int    @id @default(autoincrement())
+  orderId    String @map("order_id")
+  plateNumber String @map("plate_number")
+
+  frontStyle String? @map("front_style")
+  rearStyle  String? @map("rear_style")
+
+  frontPrice Decimal @map("front_price") @db.Decimal(10, 2)
+  rearPrice  Decimal @map("rear_price") @db.Decimal(10, 2)
+  quantity   Int
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}

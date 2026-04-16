@@ -29,13 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-brand-black text-white font-body antialiased" suppressHydrationWarning>
-        <AnnouncementBar />
-        <Navbar />
-        <main>
-          <Providers>{children}</Providers>
-        </main>
-        <Toaster />
-        <Footer />
+        <Providers>
+          <AnnouncementBar />
+          <Navbar />
+          <main>{children}</main>
+          <Toaster />
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

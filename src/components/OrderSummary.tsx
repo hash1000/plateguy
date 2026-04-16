@@ -1,6 +1,6 @@
 "use client";
 
-import { useSelector, useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import {
   removeItem,
   increaseQty,
@@ -8,8 +8,8 @@ import {
 } from "@/lib/features/cartSlice";
 
 export default function OrderSummary() {
-  const { items } = useSelector((state: any) => state.cart);
-  const dispatch = useDispatch();
+  const items = useAppSelector((state) => state.cart.items);
+  const dispatch = useAppDispatch();
 
   const total = items.reduce((acc: number, item: any) => {
     const itemTotal =

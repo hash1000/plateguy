@@ -1,11 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface PlateItem {
+export type PlateSideConfig = {
+  styleName: string;
+  sizeKey: string;
+  borderType?: string | null;
+  borderThickness?: number | null;
+  gelName?: string | null;
+};
+
+export interface PlateItem {
   id: string;
   plateNumber: string;
   roadLegalSpacing: boolean;
-  front?: any;
-  rear?: any;
+  front?: PlateSideConfig;
+  rear?: PlateSideConfig;
   frontPrice: number;
   rearPrice: number;
   quantity: number;

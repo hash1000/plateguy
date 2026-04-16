@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingCart, Search, Menu, X, ChevronDown } from "lucide-react";
 import Image from "next/image";
+import { useAppSelector } from "@/hooks/redux";
 
 const navLinks = [
   { label: "HOME", href: "/" },
@@ -67,7 +68,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [cartCount] = useState(0);
+
+  const cartCount = useAppSelector((state) =>
+    state.cart.items.reduce((acc, item) => acc + (item.quantity ?? 0), 0),
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
