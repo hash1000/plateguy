@@ -27,6 +27,23 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
+import {
+  persistStore,
+  persistReducer,
+} from "redux-persist";
+
+import storage from "redux-persist/lib/storage"; // localStorage
+
+// config
+const persistConfig = {
+  key: "root",
+  storage,
+};
+
+// wrap reducer
+const persistedReducer = persistReducer(persistConfig, cartReducer);
+
+// store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>

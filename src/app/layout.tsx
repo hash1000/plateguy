@@ -5,6 +5,9 @@ import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "./providers";
+import { persistor, store } from "@/lib/store";
+import { PersistGate } from "redux-persist/integration/react";
+import { Provider } from "react-redux";
 
 export const metadata: Metadata = {
   title: "PlateGuy | Premium 3D & 4D Number Plates UK",
