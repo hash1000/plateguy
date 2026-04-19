@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const allowed: OrderStatus[] = ["pending", "paid", "shipped", "delivered", "cancelled"];
   const statusFilter = status && allowed.includes(status as OrderStatus) ? (status as OrderStatus) : null;
 
-  const orders = await prisma.order.findMany({
+  const orders = await prisma.order.findMany({ 
     where: {
       ...(statusFilter ? { status: statusFilter } : {}),
       ...(q
