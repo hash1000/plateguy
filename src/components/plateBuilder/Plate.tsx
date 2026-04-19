@@ -186,7 +186,8 @@ const ThreeDRectangle = ({
     scene.add(plate);
 
     const fontLoader = new FontLoader();
-    fontLoader.load("/fonts/Charles-WrightBold.json", (font: unknown) => {
+    fontLoader.load("/fonts/Charles-WrightBold.json", (font) => {
+      const typedFont = font as any;
       // Use plate style properties (thickness, height, and fontSize) dynamically
       const textGeometry = new TextGeometry(
         plateNumber == ""
@@ -195,7 +196,7 @@ const ThreeDRectangle = ({
             ? "PLATE NO"
             : plateNumber,
         {
-          font,
+          font: typedFont,
           size: 2.6, // This controls the height of the letters (Y-axis)
           height:
             plateStyle.material.thickness == null
@@ -430,7 +431,8 @@ const ThreeDRectangle = ({
       // Load the font and create new geometry
       const fontLoader = new FontLoader();
       // Inside the fontLoader.load callback where the text geometry is created
-      fontLoader.load("/fonts/Charles-WrightBold.json", (font: unknown) => {
+      fontLoader.load("/fonts/Charles-WrightBold.json", (font) => {
+        const typedFont = font as any;
         if (!font) {
           console.error("Font loading failed");
           return;
@@ -441,8 +443,9 @@ const ThreeDRectangle = ({
         // First, clean up any existing text meshes from square plates
         const existingTextMeshes = scene?.children.filter(
           (child: THREE.Object3D) =>
-            !!(child as THREE.Object3D & { userData?: { isPlateText?: boolean } })
-              .userData?.isPlateText,
+            !!(
+              child as THREE.Object3D & { userData?: { isPlateText?: boolean } }
+            ).userData?.isPlateText,
         );
         existingTextMeshes?.forEach((mesh) => {
           const m = mesh as THREE.Mesh;
@@ -477,7 +480,7 @@ const ThreeDRectangle = ({
           const firstLineGeometry = new TextGeometry(
             firstLine === "" ? "AB12" : firstLine,
             {
-              font,
+              font: typedFont,
               size: 1.8,
               height: plateStyle.material.thickness
                 ? plateStyle.material.thickness / 10
@@ -492,7 +495,7 @@ const ThreeDRectangle = ({
           const secondLineGeometry = new TextGeometry(
             secondLine === "" ? "XYZ" : secondLine,
             {
-              font,
+              font: typedFont,
               size: 1.8,
               height: plateStyle.material.thickness
                 ? plateStyle.material.thickness / 10
@@ -615,7 +618,7 @@ const ThreeDRectangle = ({
             const firstLineBlackGeometry = new TextGeometry(
               firstLine === "" ? "AB12" : firstLine,
               {
-                font,
+                font: typedFont,
                 size: 1.8,
                 depth: 0.1, // Fixed depth for the black layer
                 curveSegments: 16,
@@ -628,7 +631,7 @@ const ThreeDRectangle = ({
             const secondLineBlackGeometry = new TextGeometry(
               secondLine === "" ? "XYZ" : secondLine,
               {
-                font,
+                font: typedFont,
                 size: 1.8,
                 depth: 0.1, // Fixed depth for the black layer
                 curveSegments: 16,
@@ -692,7 +695,7 @@ const ThreeDRectangle = ({
           const textGeometry = new TextGeometry(
             plateNumber === "" ? "AB12 XYZ" : plateNumber,
             {
-              font,
+              font: typedFont,
               size: 2.6, // Normal font size for regular plates
               height: plateStyle.material.thickness
                 ? plateStyle.material.thickness / 10
@@ -709,7 +712,7 @@ const ThreeDRectangle = ({
           const blackLayerGeometry = new TextGeometry(
             plateNumber === "" ? "AB12 XYZ" : plateNumber,
             {
-              font,
+              font: typedFont,
               size: 2.6,
               depth: 0.1,
               curveSegments: 16,
@@ -722,25 +725,27 @@ const ThreeDRectangle = ({
           // Apply letter spacing
           if (roadLegalSpacing) {
             const letterSpacing = -0.1;
+
             [textGeometry, blackLayerGeometry].forEach((geometry) => {
-              const shapes = (geometry as unknown as { shapes?: THREE.Shape[] }).shapes;
+              const shapes = (geometry as any).shapes;
               if (!shapes) return;
-              shapes.forEach((shape: THREE.Shape, index: number) => {
+
+              shapes.forEach((shape: any, index: number) => {
                 if (index > 0) {
-                  const offset = new THREE.Vector3(letterSpacing, 0, 0);
-                  shape.translate(offset.x, offset.y, offset.z);
+                  shape.translate(letterSpacing, 0);
                 }
               });
             });
           } else {
             const letterSpacing = 0.1;
+
             [textGeometry, blackLayerGeometry].forEach((geometry) => {
-              const shapes = (geometry as unknown as { shapes?: THREE.Shape[] }).shapes;
+              const shapes = (geometry as any).shapes;
               if (!shapes) return;
-              shapes.forEach((shape: THREE.Shape, index: number) => {
+
+              shapes.forEach((shape: any, index: number) => {
                 if (index > 0) {
-                  const offset = new THREE.Vector3(letterSpacing, 0, 0);
-                  shape.translate(offset.x, offset.y, offset.z);
+                  shape.translate(letterSpacing, 0);
                 }
               });
             });

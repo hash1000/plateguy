@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const rawBody = Buffer.from(await req.arrayBuffer());
 
-  let event: Stripe.Event;
+  let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err: unknown) {

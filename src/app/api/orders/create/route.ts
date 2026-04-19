@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { plateStyles } from "@/style/PlateStyles";
-import type Stripe from "stripe";
+import Stripe from "stripe";
+
 
 export const runtime = "nodejs";
 
@@ -174,7 +175,8 @@ export async function POST(req: Request) {
       order_id: order.id,
     },
     line_items: normalizedItems.flatMap((item) => {
-      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+      // const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+      const lineItems = [];
 
       if (item.front) {
         lineItems.push({

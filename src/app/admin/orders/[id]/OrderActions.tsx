@@ -69,7 +69,7 @@ export default function OrderActions({
       <div className="flex items-center gap-3">
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => setStatus(e.target.value as OrderStatus)}
           className="flex-1 rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-brand-yellow/50"
         >
           {statuses.map((s) => (
