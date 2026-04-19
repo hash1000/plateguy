@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description:
       "Premium 3D & 4D number plates. DVLA registered. Free delivery. Road legal.",
     type: "website",
-    url: "https://plateguy.co.uk",
+    url: "https://plateguy.co.uk", 
   },
 };
 
