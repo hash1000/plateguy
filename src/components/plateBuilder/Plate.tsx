@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
@@ -90,6 +96,20 @@ const createHollowBorderShape = (
   return shape;
 };
 
+// Preset camera positions for the numbered angle buttons (1-6)
+export const CAMERA_ANGLES: Record<number, [number, number, number]> = {
+  1: [0, 0, 16], // straight on
+  2: [-9, 1.5, 13], // slight left
+  3: [9, 1.5, 13], // slight right
+  4: [-15, 2, 7], // sharp left
+  5: [15, 2, 7], // sharp right
+  6: [0, 8, 12], // top down
+};
+
+export interface PlateHandle {
+  screenshot: () => void;
+}
+
 interface PlateProps {
   plateStyle: Plate;
   plateNumber: string;
@@ -98,48 +118,71 @@ interface PlateProps {
   size: PlateSize;
   border: Border;
   gelColor: GelColors | null;
+  cameraAngle?: number;
 }
 
-const ThreeDRectangle = ({
-  plateNumber = "YOUR PLATE",
-  isRear,
-  plateStyle,
-  size,
-  border,
-  gelColor,
-  roadLegalSpacing,
-}: PlateProps) => {
+const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRectangle(
+  {
+    plateNumber = "YOUR PLATE",
+    isRear,
+    plateStyle,
+    size,
+    border,
+    gelColor,
+    roadLegalSpacing,
+    cameraAngle = 1,
+  }: PlateProps,
+  ref,
+) {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
   const [scene, setScene] = useState<THREE.Scene | null>(null);
   const [textMesh, setTextMesh] = useState<THREE.Mesh | null>(null);
 
+  useImperativeHandle(ref, () => ({
+    screenshot: () => {
+      const canvas = rendererRef.current?.domElement;
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = `plate-${plateNumber.replace(/\s+/g, "") || "preview"}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    },
+  }));
+
   useEffect(() => {
-    if (!mountRef.current) return;
+    const mount = mountRef.current;
+    if (!mount) return;
 
     const scene = new THREE.Scene();
     setScene(scene); // Set the scene once
 
     const camera = new THREE.PerspectiveCamera(
       60,
-      mountRef.current.clientWidth / mountRef.current.clientHeight,
+      mount.clientWidth / mount.clientHeight,
       0.2,
       100,
     );
-    camera.position.set(0, 0, 15); // Camera positioned to view the plate and text
+    const initialAngle = CAMERA_ANGLES[cameraAngle] ?? CAMERA_ANGLES[1];
+    camera.position.set(...initialAngle);
+    cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true }); // Enable antialiasing
-    renderer.setSize(
-      mountRef.current.clientWidth,
-      mountRef.current.clientHeight,
-    );
-    renderer.setClearColor(0x101010); // Dark background color
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      preserveDrawingBuffer: true, // needed for screenshots
+    });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setClearColor(0xd6d6d6);
+    rendererRef.current = renderer;
 
     // Optional: Enable performance optimizations
     renderer.shadowMap.enabled = true; // Enable shadows if needed
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Use soft shadows for smoother appearance
 
     // Add the renderer's DOM element to the mount element
-    mountRef.current.appendChild(renderer.domElement);
+    mount.appendChild(renderer.domElement);
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Softer light
@@ -168,11 +211,11 @@ const ThreeDRectangle = ({
       extrudeSettings,
     );
     const plateMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, // Pure white color for the plate background
+      color: isRear ? 0xfdc832 : 0xfdfdfd, // Yellow rear / white front
       roughness: 0.9, // Keep it matte, similar to real license plates
       metalness: 0.5, // Non-metallic appearance
-      emissive: 0xd3d3d3, // Match the white background for uniform brightness
-      emissiveIntensity: 0.6, // Subtle glow to avoid overexposure
+      emissive: isRear ? 0xe8b422 : 0xffffff,
+      emissiveIntensity: isRear ? 0.5 : 0.35,
       clearcoat: 0.2, // Optional clear coat for a light glossy effect
       clearcoatRoughness: 0.2, // Slight roughness for a realistic look
       envMapIntensity: 1,
@@ -244,15 +287,17 @@ const ThreeDRectangle = ({
       setTextMesh(textMesh);
     });
 
-    // OrbitControls
+    // OrbitControls — lets the user click & drag to move the plate
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controlsRef.current = controls;
 
     // Animation loop
+    let frameId = 0;
     const animate = () => {
-      requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
       controls.update();
-      renderer.setClearColor(0xffffff); // White background color
+      renderer.setClearColor(0xd6d6d6);
       renderer.render(scene, camera);
     };
     animate();
@@ -272,8 +317,17 @@ const ThreeDRectangle = ({
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(frameId);
       controls.dispose();
       renderer.dispose();
+      // Remove the canvas so a re-mount (e.g. React strict mode) doesn't
+      // leave a dead canvas covering the live one
+      if (renderer.domElement.parentNode === mount) {
+        mount.removeChild(renderer.domElement);
+      }
+      rendererRef.current = null;
+      cameraRef.current = null;
+      controlsRef.current = null;
 
       // Dispose of the plate and text meshes if they exist
       scene.traverse((object: THREE.Object3D) => {
@@ -290,7 +344,21 @@ const ThreeDRectangle = ({
       setTextMesh(null);
       setScene(null);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once when the component is mounted
+
+  // Move the camera to the selected preset angle (buttons 1-6)
+  useEffect(() => {
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    if (!camera || !controls) return;
+    const preset = CAMERA_ANGLES[cameraAngle] ?? CAMERA_ANGLES[1];
+    camera.position.set(...preset);
+    controls.target.x = 0;
+    controls.target.y = 0;
+    controls.target.z = 0;
+    controls.update();
+  }, [cameraAngle]);
 
   useEffect(() => {
     if (scene && size) {
@@ -344,12 +412,14 @@ const ThreeDRectangle = ({
         // Only update color and emissive properties if the plate material is changing
         if (isRear) {
           // Set rear plate color and emissive properties
-          newPlateMaterial.color.set(0xffcd29); // Yellow for rear plate
-          newPlateMaterial.emissive.set(0xffcd29); // Set same color for emissive
+          newPlateMaterial.color.set(0xfdc832); // UK rear plate yellow
+          newPlateMaterial.emissive.set(0xe8b422);
+          newPlateMaterial.emissiveIntensity = 0.5;
         } else {
           // Set front plate color and emissive properties
-          newPlateMaterial.color.set(0xffffff); // White for front plate
-          newPlateMaterial.emissive.set(0xd3d3d3); // Light gray for emissive
+          newPlateMaterial.color.set(0xfdfdfd); // White for front plate
+          newPlateMaterial.emissive.set(0xffffff);
+          newPlateMaterial.emissiveIntensity = 0.35;
         }
 
         // Apply the new material to the plate mesh
@@ -890,9 +960,9 @@ const ThreeDRectangle = ({
   return (
     <div
       ref={mountRef}
-      style={{ backgroundColor: "white", width: "100%", height: "100%" }}
+      className="h-full w-full cursor-grab active:cursor-grabbing"
     />
   );
-};
+});
 
 export default ThreeDRectangle;

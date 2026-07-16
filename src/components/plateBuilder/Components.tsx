@@ -1,8 +1,8 @@
 "use client";
 
-import { Field } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn, formatRegistration } from "@/lib/utils";
+import { HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,41 @@ import Image from "next/image";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
 
+function ToggleRow({
+  title,
+  checked,
+  onCheckedChange,
+  onLabel,
+  offLabel,
+  helpText,
+}: {
+  title: string;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+  onLabel: string;
+  offLabel: string;
+  helpText?: string;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <label className="font-bold text-black">{title}</label>
+      <div className="flex items-center gap-3">
+        <Switch
+          className="h-6 w-11 [&>span]:h-5 [&>span]:w-5 data-[state=checked]:[&>span]:translate-x-5"
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
+        <span className="text-black">{checked ? onLabel : offLabel}</span>
+        {helpText && (
+          <span title={helpText} className="text-black/70 cursor-help">
+            <HelpCircle className="h-4 w-4" />
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Start({
   plateNumber,
   setPlateNumber,
@@ -26,6 +61,8 @@ export function Start({
   setIWantFrontPlate,
   iWantBackPlate,
   setIWantBackPlate,
+  rememberRegistration,
+  setRememberRegistration,
   className,
   isValidPlate,
 }: {
@@ -37,64 +74,72 @@ export function Start({
   setIWantFrontPlate: (value: boolean) => void;
   iWantBackPlate: boolean;
   setIWantBackPlate: (value: boolean) => void;
+  rememberRegistration: boolean;
+  setRememberRegistration: (value: boolean) => void;
   className?: string;
   isValidPlate: boolean;
 }) {
-  const [errors, setErrors] = useState<Record<string, string>>({});
   return (
-    <div className={cn("", className)}>
+    <div className={cn("grid gap-5", className)}>
+      <div className="grid gap-1.5">
+        <label htmlFor="registration" className="font-bold text-black">
+          Your registration
+        </label>
+        <input
+          id="registration"
+          type="text"
+          value={plateNumber}
+          onChange={(e) => setPlateNumber(e.target.value.toLocaleUpperCase())}
+          placeholder="EWQ32"
+          className="w-full rounded-md border-2 border-black bg-white px-3 py-2.5 text-lg font-semibold uppercase tracking-wide text-black outline-none focus:ring-2 focus:ring-black/40"
+        />
+        {plateNumber !== "" &&
+          (isValidPlate ? (
+            <div className="rounded-md border-2 border-black bg-white px-3 py-2.5 text-black">
+              Formatted as{" "}
+              <span className="font-extrabold">
+                {formatRegistration(plateNumber)}
+              </span>
+            </div>
+          ) : (
+            <div className="rounded-md border-2 border-black bg-red-100 px-3 py-2.5 text-red-700">
+              Not a valid registration
+            </div>
+          ))}
+      </div>
 
-      <Field
-        label="Your registration"
-        id="registration"
-        value={plateNumber}
-        onChange={(v: string) => setPlateNumber(v.toLocaleUpperCase())}
-        placeholder="WF3 2LS"
-        errors={errors}
-        setErrors={setErrors}
-        required
+      <ToggleRow
+        title="Character Spacing"
+        checked={roadLegalSpacing}
+        onCheckedChange={setRoadLegalSpacing}
+        onLabel="Using road legal spacing"
+        offLabel="Not using road legal spacing"
       />
-      {isValidPlate ? (
-        <label className="border bg-white/95 px-2 py-1 rounded-sm text-yellow-800">
-          Formatted as <span className="font-bold">{plateNumber}</span>
-        </label>
-      ) : (
-        <label className="border bg-red-400/95 px-2 py-1 rounded-sm">
-          Not road legal
-        </label>
-      )}
 
-      <div className="grid gap-1">
-        <label className="font-semibold">Character Spacing</label>
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={roadLegalSpacing}
-            onCheckedChange={(value: boolean) => setRoadLegalSpacing(value)}
-          />
-          <label>Use road legal spacing</label>
-        </div>
-      </div>
+      <ToggleRow
+        title="Front Plate"
+        checked={iWantFrontPlate}
+        onCheckedChange={setIWantFrontPlate}
+        onLabel="I want a front plate"
+        offLabel="I don't want a front plate"
+      />
 
-      <div className="grid gap-1">
-        <label className="font-semibold">Front Plate</label>
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={iWantFrontPlate}
-            onCheckedChange={(value: boolean) => setIWantFrontPlate(value)}
-          />
-          <label>I want front plate</label>
-        </div>
-      </div>
-      <div className="grid gap-1">
-        <label className="font-semibold">Back Plate</label>
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={iWantBackPlate}
-            onCheckedChange={(value: boolean) => setIWantBackPlate(value)}
-          />
-          <label>I want back plate</label>
-        </div>
-      </div>
+      <ToggleRow
+        title="Rear Plate"
+        checked={iWantBackPlate}
+        onCheckedChange={setIWantBackPlate}
+        onLabel="I want a rear plate"
+        offLabel="I don't want a rear plate"
+      />
+
+      <ToggleRow
+        title="Remember Registration"
+        checked={rememberRegistration}
+        onCheckedChange={setRememberRegistration}
+        onLabel="Registration remembered"
+        offLabel="Registration not remembered"
+        helpText="Save your registration on this device so it's filled in automatically next time."
+      />
     </div>
   );
 }

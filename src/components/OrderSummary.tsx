@@ -30,7 +30,7 @@ export default function OrderSummary() {
           className="border p-4 rounded-lg flex justify-between"
         >
           <div>
-            <p className="font-bold text-black">{item.plateNumber}</p>
+            <p className="font-bold text-white">{item.plateNumber}</p>
             <p className="text-sm text-yellow-400">
               {item.roadLegalSpacing ? "Road legal" : "Not road legal"}
             </p>
@@ -45,7 +45,7 @@ export default function OrderSummary() {
               <span className="text-black">{item.quantity}</span>
               <button
                 onClick={() => dispatch(increaseQty(item.id))}
-                className="px-2 bg-gray-200 text-black"
+                className="px-2 bg-gray-200 text-white"
               >
                 +
               </button>
@@ -53,7 +53,7 @@ export default function OrderSummary() {
           </div>
 
           <div className="text-right">
-            <p className="font-bold text-black">
+            <p className="font-bold text-white">
               £{((item.frontPrice + item.rearPrice) * item.quantity).toFixed(2)}
             </p>
 
@@ -67,7 +67,7 @@ export default function OrderSummary() {
         </div>
       ))}
 
-      <div className="text-right text-xl font-bold text-black">
+      <div className="text-right text-xl font-bold text-white">
         Total: £{total.toFixed(2)}
       </div>
     </div>
