@@ -4,46 +4,29 @@ import Link from "next/link";
 import { ShoppingCart, Search, Menu, X, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useAppSelector } from "@/hooks/redux";
+import { getNavGroups } from "@/data/plateStyles";
 
-const navLinks = [
+interface NavChild {
+  group: string;
+  items: { label: string; href: string }[];
+}
+
+interface NavLink {
+  label: string;
+  href: string;
+  external?: boolean;
+  children?: NavChild[];
+}
+
+const navLinks: NavLink[] = [
   { label: "HOME", href: "/" },
   { label: "PLATE BUILDER", href: "/plate-builder" },
   {
     label: "PLATE STYLES",
     href: "/plate-styles",
-    children: [
-      {
-        group: "4D",
-        items: [
-          { label: "4D 3MM Number Plates", href: "/plate-styles/4d-3mm" },
-          { label: "4D 5MM Number Plates", href: "/plate-styles/4d-5mm" },
-          {
-            label: "4D Gel 3mm Number Plates",
-            href: "/plate-styles/4d-gel-3mm",
-          },
-          {
-            label: "4D Gel 5mm Number Plates",
-            href: "/plate-styles/4d-gel-5mm",
-          },
-        ],
-      },
-      {
-        group: "Neon",
-        items: [
-          { label: "Neon 4D Number Plates", href: "/plate-styles/neon-4d" },
-          { label: "4D Neon Gel Show Plates", href: "/plate-styles/neon-gel" },
-        ],
-      },
-      {
-        group: "More Styles",
-        items: [
-          { label: "Printed Plates", href: "/plate-styles/printed" },
-          { label: "3D Number Plates", href: "/plate-styles/3d" },
-          { label: "Bubble Plates", href: "/plate-styles/bubble" },
-          { label: "All Plate Styles", href: "/plate-styles" },
-        ],
-      },
-    ],
+    // Built from src/data/plateStyles.ts — a style only appears here if it has
+    // a real image assigned, so broken/placeholder links can't show up.
+    // children: getNavGroups(),
   },
   {
     label: "HELP",
@@ -60,7 +43,7 @@ const navLinks = [
       },
     ],
   },
-  { label: "TIKTOK", href: "https://tiktok.com", external: true },
+  { label: "TIKTOK", href: "/tiktok" },
 ];
 
 export default function Navbar() {

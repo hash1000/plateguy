@@ -52,7 +52,7 @@ const plateStyles = [
   },
   {
     title: "Printed Plates",
-    href: "/plate-styles/printed",
+    href: "/plate-styles/standard",
     description: "High-quality printed plates at an affordable price.",
     imageSrc: "https://plateguy.co.uk/wp-content/uploads/2025/01/Printed-front-view-1-1024x576.png",
   },
