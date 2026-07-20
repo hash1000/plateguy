@@ -40,6 +40,21 @@ model Order {
   @@map("orders")
 }
 
+// Admin-set price overrides for the plate builder catalog.
+// kind "size":   styleName = plate style, key = size key (standard / 18" / square)
+// kind "border": styleName = "",          key = border name
+model PriceOverride {
+  id        Int      @id @default(autoincrement())
+  kind      String
+  styleName String   @default("") @map("style_name")
+  key       String
+  price     Decimal  @db.Decimal(10, 2)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([kind, styleName, key])
+  @@map("price_overrides")
+}
+
 model OrderItem {
   id         Int    @id @default(autoincrement())
   orderId    String @map("order_id")

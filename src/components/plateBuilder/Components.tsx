@@ -379,6 +379,53 @@ export function SIZING({ className, frontSize, rearSize, frontStyle, rearStyle, 
   );
 }
 
+function BorderCard({
+  border,
+  selected,
+  onClick,
+}: {
+  border: Border;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const hex =
+    border.color !== undefined
+      ? `#${border.color.toString(16).padStart(6, "0")}`
+      : "transparent";
+  return (
+    <div
+      onClick={onClick}
+      className={`cursor-pointer rounded-sm px-[2px] pb-2 pt-[2px] ${selected ? "bg-black" : "bg-white"}`}
+    >
+      <div className="relative flex h-[90px] items-center justify-center rounded-t-sm bg-gray-100">
+        <div
+          className="h-[48px] w-[85%] rounded-md bg-white shadow-sm"
+          style={
+            border.color !== undefined
+              ? { border: `4px solid ${hex}` }
+              : { border: "2px dashed #9ca3af" }
+          }
+        />
+        {border.roadLegal === false && (
+          <span className="absolute bottom-1 left-1 bg-orange-600 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
+            Not road legal
+          </span>
+        )}
+      </div>
+      <p
+        className={`px-2 py-2 ${selected ? "text-white" : "text-black"}`}
+      >
+        {border.name}
+        <span
+          className={`block text-sm ${selected ? "text-white/80" : "text-black/60"}`}
+        >
+          {border.price ? `+£${border.price.toFixed(2)}` : "Included"}
+        </span>
+      </p>
+    </div>
+  );
+}
+
 interface BorderProps {
   className?: string;
   frontStyle: Plate;
@@ -409,7 +456,8 @@ export function BORDER({
     if (sameAsFront) {
       setRearBorder(frontBorder);
     }
-  }, [sameAsFront]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sameAsFront, frontBorder]);
 
   const handleFrontBorderClick = (style: Border) => {
     setFrontBorder(style); // This will update the state in the parent component
@@ -440,46 +488,18 @@ export function BORDER({
         value="front"
         className="flex flex-col gap-3 col-span-2 px-2 rounded-sm"
       >
-        <div
+        <BorderCard
+          border={noBorder}
+          selected={frontBorder.name === noBorder.name}
           onClick={() => handleFrontBorderClick(noBorder)}
-          className={`pb-2 rounded-sm pt-[2px] px-[2px] ${frontBorder.name === noBorder.name ? "bg-black" : "bg-white"}`}
-        >
-          <div className="relative h-[140px]">
-            <Image
-              src={"/178348.jpg"}
-              alt="img"
-              className="rounded-t-sm"
-              fill
-              priority
-            />
-          </div>
-          <p
-            className={`px-2 py-2 ${frontBorder.name === noBorder.name ? "text-white" : "text-black"}`}
-          >
-            No border
-          </p>
-        </div>
+        />
         {frontStyle?.borders.map((border) => (
-          <div
-            onClick={() => handleFrontBorderClick(border)}
-            className={`pb-2 rounded-sm pt-[2px] px-[2px] ${frontBorder.name === border.name ? "bg-black" : "bg-white"}`}
+          <BorderCard
             key={border.name}
-          >
-            <div className="relative h-[140px]">
-              <Image
-                src={"/178348.jpg"}
-                alt="img"
-                className="rounded-t-sm"
-                fill
-                priority
-              />
-            </div>
-            <p
-              className={`px-2 py-2 ${frontBorder.name === border.name ? "text-white" : "text-black"}`}
-            >
-              {border.name}
-            </p>
-          </div>
+            border={border}
+            selected={frontBorder.name === border.name}
+            onClick={() => handleFrontBorderClick(border)}
+          />
         ))}
       </TabsContent>
 
@@ -500,38 +520,18 @@ export function BORDER({
         {/* Conditionally render rear style options based on sameAsFront */}
         {!sameAsFront && (
           <>
-            <div
+            <BorderCard
+              border={noBorder}
+              selected={rearBorder.name === noBorder.name}
               onClick={() => handleRearBorderClick(noBorder)}
-              className={`pb-2 rounded-sm pt-[2px] px-[2px] ${rearBorder.name === noBorder.name ? "bg-black" : "bg-white"}`}
-            >
-              <div className="relative h-[140px]">
-                <Image
-                  src={"/178348.jpg"}
-                  alt="img"
-                  className="rounded-t-sm"
-                  fill
-                  priority
-                />
-              </div>
-              <p className="px-2 py-2">None Border</p>
-            </div>
+            />
             {rearStyle.borders.map((border) => (
-              <div
-                onClick={() => handleRearBorderClick(border)}
-                className={`pb-2 rounded-sm pt-[2px] px-[2px] ${rearBorder.name === border.name ? "bg-black" : "bg-white"}`}
+              <BorderCard
                 key={border.name}
-              >
-                <div className="relative h-[140px]">
-                  <Image
-                    src={"/178348.jpg"}
-                    alt="img"
-                    className="rounded-t-sm"
-                    fill
-                    priority
-                  />
-                </div>
-                <p className="px-2 py-2">{border.name}</p>
-              </div>
+                border={border}
+                selected={rearBorder.name === border.name}
+                onClick={() => handleRearBorderClick(border)}
+              />
             ))}
           </>
         )}

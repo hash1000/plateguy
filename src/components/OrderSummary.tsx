@@ -45,7 +45,7 @@ export default function OrderSummary() {
               <span className="text-black">{item.quantity}</span>
               <button
                 onClick={() => dispatch(increaseQty(item.id))}
-                className="px-2 bg-gray-200 text-white"
+                className="px-2 bg-gray-200 text-black"
               >
                 +
               </button>

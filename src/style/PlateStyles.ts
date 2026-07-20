@@ -21,6 +21,9 @@ export interface Border {
   name: string;
   type: string | null;
   material: Material | null;
+  color?: number;
+  price?: number;
+  roadLegal?: boolean;
 }
 
 export interface Plate {
@@ -41,6 +44,20 @@ export interface Plate {
   preview: boolean;
 }
   
+// Shared border options offered on every style
+export const STANDARD_BORDERS: Border[] = [
+  { name: 'Black Printed', type: 'Printed', price: 1.25, color: 0x0a0a0a, material: { type: 'Printed', thickness: 1 } },
+  { name: 'Blue Printed', type: 'Printed', price: 1.25, color: 0x1d4ed8, material: { type: 'Printed', thickness: 1 } },
+  { name: 'Green Printed', type: 'Printed', price: 1.25, color: 0x15803d, material: { type: 'Printed', thickness: 1 } },
+  { name: 'Red Printed', type: 'Printed', price: 1.25, color: 0xdc2626, material: { type: 'Printed', thickness: 1 } },
+  { name: '4D 3mm Acrylic', type: '4D', price: 4.49, color: 0x000000, material: { type: '4D Acrylic', thickness: 3 } },
+  { name: 'Orange Krystal', type: 'Krystal', price: 5.49, color: 0xf97316, roadLegal: false, material: { type: 'Krystal', thickness: 2 } },
+  { name: 'Red Krystal', type: 'Krystal', price: 5.49, color: 0xdc2626, roadLegal: false, material: { type: 'Krystal', thickness: 2 } },
+  { name: 'Green Krystal', type: 'Krystal', price: 5.49, color: 0x15803d, roadLegal: false, material: { type: 'Krystal', thickness: 2 } },
+  { name: 'Blue Krystal', type: 'Krystal', price: 5.49, color: 0x1d4ed8, roadLegal: false, material: { type: 'Krystal', thickness: 2 } },
+  { name: 'Clear Krystal', type: 'Krystal', price: 5.49, color: 0xd9dde3, roadLegal: false, material: { type: 'Krystal', thickness: 2 } },
+];
+
 const plateStyles: Plate[] = [
   {
     letters: 7,
@@ -64,7 +81,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -89,7 +106,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:16 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -114,7 +131,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height:8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   // {
@@ -187,7 +204,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:16 }
       ]
     },
-    borders: [{ name: '4D 5mm Acrylic', type: 'Printed', material: { type: '4D Acrylic', thickness: 3 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -234,7 +251,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:12 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -263,7 +280,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8 ,price:17}
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -321,7 +338,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:17 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -426,7 +443,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:20 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   {
@@ -444,7 +461,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   {
@@ -462,7 +479,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
 
@@ -492,7 +509,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -519,7 +536,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:16 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -546,7 +563,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   // {
@@ -625,7 +642,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:16 }
       ]
     },
-    borders: [{ name: '4D 5mm Acrylic', type: 'Printed', material: { type: '4D Acrylic', thickness: 3 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -676,7 +693,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:12 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -707,7 +724,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:17 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -769,7 +786,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:17 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -890,7 +907,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   {
@@ -908,7 +925,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
 
@@ -940,7 +957,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -969,7 +986,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:16 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -998,7 +1015,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:14.50 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   // {
@@ -1083,7 +1100,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8 }
       ]
     },
-    borders: [{ name: '4D 5mm Acrylic', type: 'Printed', material: { type: '4D Acrylic', thickness: 5 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -1138,7 +1155,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:12 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   {
@@ -1171,7 +1188,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8 ,price:17}
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -1237,7 +1254,7 @@ const plateStyles: Plate[] = [
         { key: 'square', width: 11, height: 8,price:17 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: true
   },
   // {
@@ -1364,7 +1381,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   },
   {
@@ -1382,7 +1399,7 @@ const plateStyles: Plate[] = [
         { key: 'standard', width: 9, height: 7,price:0 }
       ]
     },
-    borders:[ { name: '4D 3mm Acrylic ', type: 'Printed', material: { type: 'Printed', thickness: 3 } },{ name: 'Printed', type: 'Printed', material: { type: 'Printed', thickness: 1 } }],
+    borders: STANDARD_BORDERS,
     preview: false
   }
 

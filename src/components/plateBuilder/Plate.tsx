@@ -244,7 +244,7 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
           height:
             plateStyle.material.thickness == null
               ? 0
-              : plateStyle.material.thickness / 10, // This controls the extrusion depth (Z-axis thickness)
+              : plateStyle.material.thickness / 32, // This controls the extrusion depth (Z-axis thickness)
           curveSegments: 128, // Controls curve smoothness
         },
       );
@@ -450,20 +450,30 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
               (size.width - 0.5) * scaleFactor,
               (size.height - 0.5) * scaleFactor,
               0.5,
-              0.15,
+              0.18,
             ),
             {
-              depth: border.material.thickness / 10, // Depth of the border
+              depth: border.material.thickness / 16, // Slim raise above the plate face
               bevelEnabled: false,
             },
           );
 
-          const borderMaterial = new THREE.MeshBasicMaterial({
-            color: 0x000000, // Border color (black)
-          });
+          const borderColor = border.color ?? 0x000000;
+          const isKrystal = /krystal/i.test(border.type ?? "");
+          const borderMaterial = isKrystal
+            ? new THREE.MeshPhysicalMaterial({
+                color: borderColor,
+                emissive: borderColor,
+                emissiveIntensity: 0.25,
+                roughness: 0.1,
+                metalness: 0.4,
+                clearcoat: 1,
+                clearcoatRoughness: 0.1,
+              })
+            : new THREE.MeshBasicMaterial({ color: borderColor });
 
           const borderMesh = new THREE.Mesh(borderGeometry, borderMaterial);
-          borderMesh.position.set(0, 0, 0.15); // Position it slightly above the plate
+          borderMesh.position.set(0, 0, 0.2); // Sit on the plate face
           borderMesh.name = "borderMesh"; // Set a name to easily find it later
 
           // Add the new border mesh to the scene
@@ -530,6 +540,16 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
 
         const isSquarePlate = size.key.toLowerCase() === "square"; // Check if the plate is square
 
+        // Printed plates have flat characters — no extrusion, no bevel
+        const isPrintedStyle =
+          /printed/i.test(plateStyle.material.type) ||
+          plateStyle.material.thickness == null ||
+          plateStyle.material.thickness <= 1;
+        // Scene units are ~inches, so divide mm by 25.4 for a realistic raise
+        const textDepth = isPrintedStyle
+          ? 0.02
+          : (plateStyle.material.thickness ?? 0) / 32;
+
         let firstLine = "";
         let secondLine = "";
 
@@ -552,13 +572,11 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
             {
               font: typedFont,
               size: 1.8,
-              height: plateStyle.material.thickness
-                ? plateStyle.material.thickness / 10
-                : 0,
+              height: textDepth,
               curveSegments: 16,
-              bevelEnabled: true,
-              bevelSize: 0.06,
-              bevelThickness: 0.08,
+              bevelEnabled: !isPrintedStyle,
+              bevelSize: 0.02,
+              bevelThickness: 0.02,
             },
           );
 
@@ -567,13 +585,11 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
             {
               font: typedFont,
               size: 1.8,
-              height: plateStyle.material.thickness
-                ? plateStyle.material.thickness / 10
-                : 0,
+              height: textDepth,
               curveSegments: 16,
-              bevelEnabled: true,
-              bevelSize: 0.06,
-              bevelThickness: 0.08,
+              bevelEnabled: !isPrintedStyle,
+              bevelSize: 0.02,
+              bevelThickness: 0.02,
             },
           );
 
@@ -684,17 +700,19 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
             textMesh.visible = false;
 
             // --- Create Black Layers Using the Else Logic ---
+            // Printed plates have flat characters, so no raised black layer
+            if (isPrintedStyle) return;
             // Instead of cloning the existing geometry, we create new TextGeometries with a fixed depth (0.1)
             const firstLineBlackGeometry = new TextGeometry(
               firstLine === "" ? "AB12" : firstLine,
               {
                 font: typedFont,
                 size: 1.8,
-                depth: 0.1, // Fixed depth for the black layer
+                depth: 0.02, // Thin gel layer sitting on the letters
                 curveSegments: 16,
                 bevelEnabled: true,
-                bevelSize: 0.05,
-                bevelThickness: 0.06,
+                bevelSize: 0.02,
+                bevelThickness: 0.01,
               },
             );
 
@@ -703,11 +721,11 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
               {
                 font: typedFont,
                 size: 1.8,
-                depth: 0.1, // Fixed depth for the black layer
+                depth: 0.02, // Thin gel layer sitting on the letters
                 curveSegments: 16,
                 bevelEnabled: true,
-                bevelSize: 0.05,
-                bevelThickness: 0.06,
+                bevelSize: 0.02,
+                bevelThickness: 0.01,
               },
             );
 
@@ -736,7 +754,7 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
 
             // Position the black layers with a z offset so they appear on top
             const blackZ = plateStyle.material.thickness
-              ? plateStyle.material.thickness / 10 + 0.24
+              ? 0.21 + textDepth
               : 0.24;
             firstLineBlackMesh.position.set(
               firstLineMesh.position.x,
@@ -767,13 +785,11 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
             {
               font: typedFont,
               size: 2.6, // Normal font size for regular plates
-              height: plateStyle.material.thickness
-                ? plateStyle.material.thickness / 10
-                : 0,
+              height: textDepth,
               curveSegments: 16,
-              bevelEnabled: true,
-              bevelSize: 0.06,
-              bevelThickness: 0.08,
+              bevelEnabled: !isPrintedStyle,
+              bevelSize: 0.02,
+              bevelThickness: 0.02,
             },
           );
 
@@ -784,11 +800,11 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
             {
               font: typedFont,
               size: 2.6,
-              depth: 0.1,
+              depth: 0.02,
               curveSegments: 16,
               bevelEnabled: true,
-              bevelSize: 0.05,
-              bevelThickness: 0.06,
+              bevelSize: 0.02,
+              bevelThickness: 0.01,
             },
           );
 
@@ -936,7 +952,7 @@ const ThreeDRectangle = forwardRef<PlateHandle, PlateProps>(function ThreeDRecta
                 offsetX,
                 offsetY,
                 plateStyle.material.thickness
-                  ? plateStyle.material.thickness / 10 + 0.24
+                  ? 0.21 + textDepth
                   : 0.24,
               );
               scene?.add(blackLayerMesh);

@@ -12,6 +12,7 @@ import ThreeDRectangle, {
 } from "@/components/plateBuilder/Plate";
 import PlateSummary from "@/components/plateBuilder/PlateSummary";
 import { useToast } from "@/hooks/use-toast";
+import { applyOverridesToCatalog } from "@/lib/pricing";
 import { formatRegistration } from "@/lib/utils";
 import { ArrowRight, Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -56,7 +57,24 @@ export default function PlateBuilder() {
   const [isValidPlate, setIsValidPlate] = useState(false);
   const [isRear, setIsRear] = useState(false);
   const [cameraAngle, setCameraAngle] = useState(1);
+  const [pricingVersion, setPricingVersion] = useState(0);
   const plateRef = useRef<PlateHandle>(null);
+
+  // Load admin price overrides and apply them to the catalog
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/pricing")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.overrides?.length) return;
+        applyOverridesToCatalog(data.overrides);
+        setPricingVersion((v) => v + 1);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const formattedPlate = formatRegistration(plateNumber);
 
@@ -128,11 +146,11 @@ export default function PlateBuilder() {
 
   useEffect(() => {
     setRearPrice(rearSize?.price ?? 0);
-  }, [rearSize]);
+  }, [rearSize, pricingVersion]);
 
   useEffect(() => {
     setFrontPrice(frontSize?.price ?? 0);
-  }, [frontSize]);
+  }, [frontSize, pricingVersion]);
 
   const [frontBorder, setFrontBorder] = useState<Border>(() => ({
     name: "None",

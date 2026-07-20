@@ -43,12 +43,20 @@ export default async function AdminDashboardPage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <div className="flex items-center justify-between gap-4">
           <h1 className="font-heading text-3xl">Admin dashboard</h1>
-          <Link
-            href="/admin/orders"
-            className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2 font-bold text-brand-black hover:opacity-90 transition-opacity"
-          >
-            View orders
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/pricing"
+              className="inline-flex items-center justify-center rounded-xl border border-brand-yellow px-4 py-2 font-bold text-brand-yellow hover:bg-brand-yellow/10 transition-colors"
+            >
+              Edit pricing
+            </Link>
+            <Link
+              href="/admin/orders"
+              className="inline-flex items-center justify-center rounded-xl bg-brand-yellow px-4 py-2 font-bold text-brand-black hover:opacity-90 transition-opacity"
+            >
+              View orders
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

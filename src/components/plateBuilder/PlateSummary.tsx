@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Border, GelColors, Plate, PlateSize } from "../../style/PlateStyles";
 import { useAppDispatch } from "@/hooks/redux";
@@ -77,7 +77,11 @@ function PlateSection({
         price="Included"
       />
       {border.type !== "None" && (
-        <SummaryRow label="Border" value={border.name.trim()} price="Included" />
+        <SummaryRow
+          label="Border"
+          value={border.name.trim()}
+          price={border.price ? `£${border.price.toFixed(2)}` : "Included"}
+        />
       )}
       {gel && <SummaryRow label="Colour" value={gel.name} price="Included" />}
     </div>
@@ -101,8 +105,29 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
   rearGel,
 }) => {
   const router = useRouter();
-  const isDisabled = !plateNumber || (!wantFront && !wantBack);
   const dispatch = useAppDispatch();
+
+  const frontBorderPrice =
+    frontBorder.type !== "None" ? (frontBorder.price ?? 0) : 0;
+  const rearBorderPrice =
+    rearBorder.type !== "None" ? (rearBorder.price ?? 0) : 0;
+  const frontTotal = frontPrice + frontBorderPrice;
+  const rearTotal = rearPrice + rearBorderPrice;
+
+  // "Not road legal" borders need an explicit acknowledgement first
+  const needsAcknowledgement =
+    (wantFront && frontBorder.roadLegal === false) ||
+    (wantBack && rearBorder.roadLegal === false);
+  const [acknowledged, setAcknowledged] = useState(false);
+
+  useEffect(() => {
+    setAcknowledged(false);
+  }, [frontBorder.name, rearBorder.name]);
+
+  const isDisabled =
+    !plateNumber ||
+    (!wantFront && !wantBack) ||
+    (needsAcknowledgement && !acknowledged);
 
   function addToBasketHandler() {
     if (isDisabled) return;
@@ -112,8 +137,8 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
         id: `${plateNumber}-${Date.now()}`,
         plateNumber,
         roadLegalSpacing,
-        frontPrice: wantFront ? frontPrice : 0,
-        rearPrice: wantBack ? rearPrice : 0,
+        frontPrice: wantFront ? frontTotal : 0,
+        rearPrice: wantBack ? rearTotal : 0,
         quantity: 1,
         front: wantFront
           ? {
@@ -139,7 +164,7 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
     router.push("/cart");
   }
 
-  const total = (wantFront ? frontPrice : 0) + (wantBack ? rearPrice : 0);
+  const total = (wantFront ? frontTotal : 0) + (wantBack ? rearTotal : 0);
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-xl">
@@ -184,6 +209,19 @@ const PlateSummary: React.FC<PlateSummaryProps> = ({
           £{total.toFixed(2)}
         </span>
       </div>
+
+      {needsAcknowledgement && (
+        <label className="mt-4 flex cursor-pointer items-start gap-3 text-[15px] font-semibold text-gray-900">
+          <input
+            type="checkbox"
+            checked={acknowledged}
+            onChange={(e) => setAcknowledged(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[#F5C843]"
+          />
+          I understand that my plates may not be road legal and that they may
+          be sold as show plates
+        </label>
+      )}
 
       <button
         onClick={addToBasketHandler}
