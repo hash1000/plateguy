@@ -3,7 +3,14 @@ import { ArrowRight } from "lucide-react";
 import PlateCard from "@/components/PlateCard";
 import { plateStyles } from "@/data/plateStyles";
 
-const featuredSlugs = ["standard", "hex"];
+const featuredSlugs = [
+  "standard",
+  "hex",
+  "bubble",
+  "bike-4d",
+  "show-plates",
+  "other-plates",
+];
 
 export default function TikTokPage() {
   const featured = featuredSlugs
@@ -22,8 +29,8 @@ export default function TikTokPage() {
             OUR MOST-LOVED PLATES
           </h1>
           <p className="text-white/50 mt-3 max-w-xl">
-            The two styles our TikTok community keeps asking for — build yours
-            in a couple of clicks and get it delivered free.
+            The styles our TikTok community keeps asking for — build yours in
+            a couple of clicks and get it delivered free.
           </p>
         </div>
       </section>
@@ -31,7 +38,7 @@ export default function TikTokPage() {
       {/* Featured grid */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featured.map((style) => (
               <PlateCard
                 key={style.slug}

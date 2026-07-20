@@ -151,6 +151,26 @@ export const plateStyles: PlateStyle[] = [
       "Oversized 4x4 format plates with premium gel characters for SUVs and trucks.",
     image: "/plate-styles/4x4/front.png",
   },
+  {
+    slug: "show-plates",
+    title: "Show Plates",
+    navGroup: "Neon",
+    categories: ["Neon", "Gel", "Show Plate"],
+    badge: "Not Road Legal",
+    description:
+      "Glowing neon gel show plates in a range of colours — a head-turning finish for display use only.",
+    image: "/product-plates/show-plates/1.png",
+  },
+  {
+    slug: "other-plates",
+    title: "Other Plates",
+    navGroup: "More Styles",
+    categories: ["4x4"],
+    badge: "Road Legal",
+    description:
+      "Specialist plate sizes for Range Rovers, 4x4s, and imported vehicles — Range Rover, Jeep 4x4, Import JAP, and Import USA fits.",
+    image: "/product-plates/other-plates/1.png",
+  },
 ];
 
 export const filterCategories: PlateCategory[] = [
